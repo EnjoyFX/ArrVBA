@@ -43,11 +43,14 @@ End Property
 
 
 
-Sub PrintMe(Optional ByVal delim = ", ")
+Sub PrintMe(Optional ByVal delim = ", ", _
+            Optional ByRef toVar$ = "")
+
+' Prints array to immendiate window [and to variable toVar]
+' [delim] - delimiter for elements of array
+' [toVar] - result also redirected to this variable
 
     Const this_me$ = "PrintMe"
-
-    Dim txt$
 
     On Error GoTo errHandler
 
@@ -56,9 +59,9 @@ Sub PrintMe(Optional ByVal delim = ", ")
         starts = Timer
     #End If
 
-    txt = Join(theArr, delim)
+    toVar = Join(theArr, delim)
 
-    Debug.Print txt
+    Debug.Print toVar
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -285,8 +288,9 @@ End Sub
 
 
 Sub OutVertical(ByVal startAddr$, _
-                  Optional ws As Worksheet, _
-                  Optional ByRef rngOut As Range)
+                Optional ws As Worksheet, _
+                Optional ByRef rngOut As Range, _
+                Optional ByVal bold As Boolean = False)
 
     Const this_me$ = "OutVertical"
 
@@ -318,6 +322,7 @@ Sub OutVertical(ByVal startAddr$, _
     Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(maxB - minB + (1 - adder)))
 
     rngOut.Value2 = B
+    If bold Then rngOut.Font.bold = True
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -337,7 +342,8 @@ End Sub
 
 Sub OutHorizontal(ByVal startAddr$, _
                   Optional ws As Worksheet, _
-                  Optional ByRef rngOut As Range)
+                  Optional ByRef rngOut As Range, _
+                  Optional ByVal bold As Boolean = False)
 
     Const this_me$ = "OutHorizontal"
 
@@ -369,6 +375,7 @@ Sub OutHorizontal(ByVal startAddr$, _
     Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(, maxB - minB + (1 - adder)))
 
     rngOut.Value2 = B
+    If bold Then rngOut.Font.bold = True
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -386,6 +393,60 @@ errHandler:
 
 End Sub
 
+
+Sub OutDiagonal(ByVal startAddr$, _
+                Optional ws As Worksheet, _
+                Optional ByRef rngOut As Range, _
+                Optional ByVal bold As Boolean = False)
+
+    Const this_me$ = "OutDiagonal"
+
+    Dim B, minB&, maxB&, n&, adder&
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minB = LBound(theArr)
+
+    maxB = UBound(theArr)
+
+    If Based = 0 Then adder = 1 Else adder = 0
+
+    ReDim B(1 To Count, 1 To Count)
+
+    For n = minB To maxB
+
+        B(n + adder, n + adder) = theArr(n)
+
+    Next n
+
+    If ws Is Nothing Then Set ws = ActiveSheet
+
+    Set rngOut = Range(ws.Range(startAddr), _
+                       ws.Range(startAddr).Offset(maxB - minB + (1 - adder), maxB - minB + (1 - adder)))
+
+    rngOut.Value2 = B
+    If bold Then rngOut.Font.bold = True
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Sub
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Sub
 
 Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 
