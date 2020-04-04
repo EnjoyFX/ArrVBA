@@ -28,7 +28,7 @@ Sub Example()
 
     A.OutVertical "B11"
 
-    A.OutDiagonal ("D11")
+    A.OutDiagonal "D11"
 
 End Sub
 
