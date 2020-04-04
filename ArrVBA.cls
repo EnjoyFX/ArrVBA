@@ -284,6 +284,57 @@ errHandler:
 End Sub
 
 
+Sub OutVertical(ByVal startAddr$, _
+                  Optional ws As Worksheet, _
+                  Optional ByRef rngOut As Range)
+
+    Const this_me$ = "OutVertical"
+
+    Dim B, minB&, maxB&, n&, adder&
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minB = LBound(theArr)
+
+    maxB = UBound(theArr)
+
+    If Based = 0 Then adder = 1 Else adder = 0
+
+    ReDim B(1 To Count, 1 To 1)
+
+    For n = minB To maxB
+
+        B(n + adder, 1) = theArr(n)
+
+    Next n
+
+    If ws Is Nothing Then Set ws = ActiveSheet
+
+    Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(maxB - minB + (1 - adder)))
+
+    rngOut.Value2 = B
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Sub
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Sub
+
 Sub OutHorizontal(ByVal startAddr$, _
                   Optional ws As Worksheet, _
                   Optional ByRef rngOut As Range)
