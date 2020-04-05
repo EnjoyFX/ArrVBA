@@ -13,9 +13,15 @@ Option Explicit
 
 Const className$ = "ArrVBA"    ' Used in error handling process messages
 
+Public Enum SortMethod
+    Insertion = 1
+End Enum
+
+
 Private Count As Long    ' Counter of elements in ArrVBA instance
 Private theArr As Variant    ' Variant Array
 Private t_Based As Integer    ' Base of array, default 0
+
 
 
 Private Sub Class_Initialize()
@@ -447,6 +453,175 @@ errHandler:
     Resume Next
 
 End Sub
+
+Sub Reverse(Optional ByVal method)
+
+    Const this_me$ = "Reverse"
+
+    Dim n&, m&, minN&, maxN&, B
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(theArr)
+
+    maxN = UBound(theArr)
+    
+    
+    ReDim B(minN To maxN)
+    
+    
+    For n = minN To maxN
+    
+        B(maxN - n) = theArr(n)
+    
+    Next n
+    
+    theArr = B
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Sub
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Sub
+
+
+
+Sub Sort(Optional ByVal method% = SortMethod.Insertion, _
+         Optional ByVal Reverse = False)
+
+    Select Case method
+
+    Case SortMethod.Insertion: theArr = sortInsertion(theArr, Reverse:=Reverse)
+
+    End Select
+
+End Sub
+
+
+Private Function sortInsertion(Arr, _
+                               Optional ByVal Reverse = False) As Variant
+
+    Const this_me$ = "sortInsertion"
+
+    Dim n&, m&, minN&, maxN&, item_to_insert
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(Arr)
+
+    maxN = UBound(Arr)
+
+    If Reverse = False Then
+
+        If minN + 1 = maxN Then
+
+            If Arr(minN) > Arr(maxN) Then GoSub swap_2elems
+
+            GoTo finish
+
+        End If
+
+
+        For n = minN + 1 To maxN
+
+            item_to_insert = Arr(n)
+
+            m = n - 1
+
+            Do While m >= 0
+                If Arr(m) > item_to_insert Then
+                    Arr(m + 1) = Arr(m)
+                    m = m - 1
+                Else
+                    Exit Do
+                End If
+            Loop
+
+            Arr(m + 1) = item_to_insert
+
+        Next n
+
+    Else
+
+        If minN + 1 = maxN Then
+
+            If Arr(minN) < Arr(maxN) Then GoSub swap_2elems
+
+            GoTo finish
+
+        End If
+
+
+        For n = minN + 1 To maxN
+
+            item_to_insert = Arr(n)
+
+            m = n - 1
+
+            Do While m >= 0
+                If Arr(m) < item_to_insert Then
+                    Arr(m + 1) = Arr(m)
+                    m = m - 1
+                Else
+                    Exit Do
+                End If
+            Loop
+
+            Arr(m + 1) = item_to_insert
+
+        Next n
+
+    End If
+
+finish:
+
+    sortInsertion = Arr
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+swap_2elems:
+
+    Dim tmp
+
+    tmp = Arr(minN)
+    Arr(minN) = Arr(maxN)
+    Arr(maxN) = tmp
+
+    Return
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
 
 Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 

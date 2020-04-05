@@ -19,13 +19,26 @@ Sub Example()
 
     A.OutHorizontal "B7", bold:=True
 
-    A.RndFill elements:=80, lowerBound:=0, upperBound:=10000
+    A.RndFill elements:=800, lowerBound:=0, upperBound:=10000
 
     A.OutHorizontal "B9"
 
     A.OutVertical "B11"
 
-    A.OutDiagonal ("D11")
+    'A.OutDiagonal "D11"
+
+    A.Sort
+
+    A.OutVertical "C11"
+
+    A.Sort Reverse:=True
+
+    A.OutVertical "D11"
+    
+    A.Reverse
+    
+    A.OutVertical "E11"
+
 
 End Sub
 
