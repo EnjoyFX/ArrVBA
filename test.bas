@@ -1,7 +1,10 @@
 Attribute VB_Name = "test"
 Sub Example()
 
-    Dim A As New ArrVBA, B, C, D
+    Const num = 1000, lower = 0, upper = 1000000
+
+    Dim A As New ArrVBA, B, C, D, E As New ArrVBA, F As New ArrVBA, G As New ArrVBA
+
 
     A.Based = 0
 
@@ -19,7 +22,7 @@ Sub Example()
 
     A.OutHorizontal "B7", bold:=True
 
-    A.RndFill elements:=800, lowerBound:=0, upperBound:=10000
+    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
 
     A.OutHorizontal "B9"
 
@@ -27,17 +30,42 @@ Sub Example()
 
     'A.OutDiagonal "D11"
 
-    A.Sort
+    A.Sort method:=SortMethod.Bubble
 
     A.OutVertical "C11"
 
-    A.Sort Reverse:=True
 
-    A.OutVertical "D11"
+    E.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+
+    E.OutVertical "E11"
+
+    E.Sort method:=SortMethod.Insertion
+
+    E.OutVertical "F11"
+
+
+
+    F.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+
+    F.OutVertical "H11"
+
+    F.Sort method:=SortMethod.Selection
+
+    F.OutVertical "I11"
     
-    A.Reverse
     
-    A.OutVertical "E11"
+    G.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+    
+    G.OutVertical "K11"
+            
+    G.Sort method:=SortMethod.Quick
+
+    G.OutVertical "L11"
+    
+    
+    'A.Reverse
+    
+    'A.OutVertical "E11"
 
 
 End Sub

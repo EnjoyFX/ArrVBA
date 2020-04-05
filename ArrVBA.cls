@@ -14,7 +14,11 @@ Option Explicit
 Const className$ = "ArrVBA"    ' Used in error handling process messages
 
 Public Enum SortMethod
+    BuiltIn = 0
     Insertion = 1
+    Bubble = 2
+    Selection = 3
+    Quick = 4
 End Enum
 
 
@@ -470,17 +474,17 @@ Sub Reverse(Optional ByVal method)
     minN = LBound(theArr)
 
     maxN = UBound(theArr)
-    
-    
+
+
     ReDim B(minN To maxN)
-    
-    
+
+
     For n = minN To maxN
-    
+
         B(maxN - n) = theArr(n)
-    
+
     Next n
-    
+
     theArr = B
 
     #If debug_me = True Then
@@ -506,12 +510,26 @@ Sub Sort(Optional ByVal method% = SortMethod.Insertion, _
 
     Select Case method
 
+    Case SortMethod.BuiltIn: theArr = sortExcel(theArr, Reverse:=Reverse)
+
     Case SortMethod.Insertion: theArr = sortInsertion(theArr, Reverse:=Reverse)
+
+    Case SortMethod.Bubble: theArr = sortBubble(theArr, Reverse:=Reverse)
+
+    Case SortMethod.Selection: theArr = sortSelection(theArr, Reverse:=Reverse)
+    
+    Case SortMethod.Quick: theArr = sortQuick(theArr, Reverse:=Reverse)
+
+    Case Else: Debug.Print "Sort Method unknown!"
 
     End Select
 
 End Sub
 
+Private Function sortExcel(Arr, _
+                           Optional ByVal Reverse = False) As Variant
+
+End Function
 
 Private Function sortInsertion(Arr, _
                                Optional ByVal Reverse = False) As Variant
@@ -622,6 +640,306 @@ errHandler:
     Resume Next
 
 End Function
+
+
+Private Function sortBubble(Arr, _
+                            Optional ByVal Reverse = False) As Variant
+
+    Const this_me$ = "sortBubble"
+
+    Dim n&, m&, minN&, maxN&, swapped As Boolean, tmp
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(Arr)
+
+    maxN = UBound(Arr)
+
+    If Reverse = False Then
+
+        If minN + 1 = maxN Then
+
+            If Arr(minN) > Arr(maxN) Then GoSub swap_2elems
+
+            GoTo finish
+
+        End If
+
+        swapped = True
+
+        Do While swapped
+
+            swapped = False
+
+            For n = minN To maxN - 1
+
+                If Arr(n) > Arr(n + 1) Then
+                    tmp = Arr(n)
+                    Arr(n) = Arr(n + 1)
+                    Arr(n + 1) = tmp
+                    swapped = True
+                End If
+
+            Next n
+
+        Loop
+
+    Else
+
+        If minN + 1 = maxN Then
+
+            If Arr(minN) < Arr(maxN) Then GoSub swap_2elems
+
+            GoTo finish
+
+        End If
+
+        swapped = True
+
+        Do While swapped
+
+            swapped = False
+
+            For n = minN To maxN - 1
+
+                If Arr(n) < Arr(n + 1) Then
+                    tmp = Arr(n)
+                    Arr(n) = Arr(n + 1)
+                    Arr(n + 1) = tmp
+                    swapped = True
+                End If
+
+            Next n
+
+        Loop
+
+    End If
+
+finish:
+
+    sortBubble = Arr
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+swap_2elems:
+
+    tmp = Arr(minN)
+    Arr(minN) = Arr(maxN)
+    Arr(maxN) = tmp
+
+    Return
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+
+Private Function sortSelection(Arr, _
+                               Optional ByVal Reverse = False) As Variant
+
+    Const this_me$ = "sortSelection"
+
+    Dim n&, m&, minN&, maxN&, lowest_ind&, tmp
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(Arr)
+
+    maxN = UBound(Arr)
+
+    If Reverse = False Then
+
+        If minN + 1 = maxN Then
+
+            If Arr(minN) > Arr(maxN) Then GoSub swap_2elems
+
+            GoTo finish
+
+        End If
+
+        For n = minN To maxN
+
+            lowest_ind = n
+
+            For m = n + 1 To maxN
+
+                If Arr(m) < Arr(lowest_ind) Then lowest_ind = m
+
+            Next m
+
+            tmp = Arr(n)
+            Arr(n) = Arr(lowest_ind)
+            Arr(lowest_ind) = tmp
+
+        Next n
+
+    Else
+
+        If minN + 1 = maxN Then
+
+            If Arr(minN) < Arr(maxN) Then GoSub swap_2elems
+
+            GoTo finish
+
+        End If
+
+        For n = minN To maxN
+
+            lowest_ind = n
+
+            For m = n + 1 To maxN
+
+                If Arr(m) > Arr(lowest_ind) Then lowest_ind = m
+
+            Next m
+
+            tmp = Arr(n)
+            Arr(n) = Arr(lowest_ind)
+            Arr(lowest_ind) = tmp
+
+        Next n
+
+    End If
+
+finish:
+
+    sortSelection = Arr
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+swap_2elems:
+
+    tmp = Arr(minN)
+    Arr(minN) = Arr(maxN)
+    Arr(maxN) = tmp
+
+    Return
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+
+Private Function sortQuick(Arr, _
+                           Optional ByVal Reverse = False, _
+                           Optional ByVal minN& = -1, _
+                           Optional ByVal maxN& = -1) As Variant
+
+    Const this_me$ = "sortQuick"
+
+    Dim n&, midVal, tmpMin, tmpMax, tmp, needShow As Boolean
+
+    On Error GoTo errHandler
+    
+    needShow = False
+    
+    If minN = -1 Then
+        #If debug_me = True Then
+            Dim starts
+            starts = Timer
+        #End If
+        minN = LBound(Arr)
+        needShow = True
+    End If
+
+    tmpMin = minN
+
+    If maxN = -1 Then maxN = UBound(Arr)
+    
+    
+    tmpMax = maxN
+
+    If Reverse = False Then
+
+        midVal = Arr((minN + maxN) \ 2)
+
+        While tmpMin <= tmpMax
+
+            While (Arr(tmpMin) < midVal And tmpMin < maxN)
+
+                tmpMin = tmpMin + 1
+
+            Wend
+
+
+            While (midVal < Arr(tmpMax) And tmpMax > minN)
+
+                tmpMax = tmpMax - 1
+
+            Wend
+
+
+            If tmpMin <= tmpMax Then
+
+                tmp = Arr(tmpMin)
+                Arr(tmpMin) = Arr(tmpMax)
+                Arr(tmpMax) = tmp
+                tmpMin = tmpMin + 1
+                tmpMax = tmpMax - 1
+
+            End If
+
+        Wend
+
+        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, Reverse:=Reverse)
+        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, Reverse:=Reverse)
+
+    Else
+
+
+
+    End If
+
+finish:
+
+    sortQuick = Arr
+
+    #If debug_me = True Then
+        If needShow Then Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
 
 Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 
