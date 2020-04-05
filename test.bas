@@ -1,9 +1,13 @@
 Attribute VB_Name = "test"
 Sub Example()
 
-    Const num = 1000, lower = 0, upper = 1000000
+    Const num = 1000, lower = 0, upper = 1000000, reverse = False
 
-    Dim A As New ArrVBA, B, C, D, E As New ArrVBA, F As New ArrVBA, G As New ArrVBA
+    Dim A As New ArrVBA, B As New ArrVBA, C, D, E, src As Boolean
+
+    src = Application.ScreenUpdating
+
+    If src Then Application.ScreenUpdating = False
 
 
     A.Based = 0
@@ -14,11 +18,15 @@ Sub Example()
     A.Add "test"
     A.Add "of ArrVBA Class"
 
+    Debug.Print A.MaxValue
+    
+    Debug.Print A.MinValue
+
     A.PrintMe
 
-    B = A.AsVariant
-    C = A.AsVertical
-    D = A.AsHorizontal
+    C = A.AsVariant
+    D = A.AsVertical
+    E = A.AsHorizontal
 
     A.OutHorizontal "B7", bold:=True
 
@@ -30,43 +38,53 @@ Sub Example()
 
     'A.OutDiagonal "D11"
 
-    A.Sort method:=SortMethod.Bubble
+    A.Sort method:=SortMethod.Bubble, reverse:=reverse
 
     A.OutVertical "C11"
 
 
-    E.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
 
-    E.OutVertical "E11"
+    A.OutVertical "E11"
 
-    E.Sort method:=SortMethod.Insertion
-
-    E.OutVertical "F11"
-
-
-
-    F.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
-
-    F.OutVertical "H11"
-
-    F.Sort method:=SortMethod.Selection
-
-    F.OutVertical "I11"
+    A.Sort method:=SortMethod.Insertion, reverse:=reverse
     
-    
-    G.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
-    
-    G.OutVertical "K11"
-            
-    G.Sort method:=SortMethod.Quick
+    A.OutVertical "F11"
 
-    G.OutVertical "L11"
-    
-    
+
+
+    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+
+    A.OutVertical "H11"
+
+    A.Sort method:=SortMethod.Selection, reverse:=reverse
+
+    A.OutVertical "I11"
+
+
+    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+
+    A.OutVertical "K11"
+
+    A.Sort method:=SortMethod.Quick, reverse:=reverse
+
+    A.OutVertical "L11"
+
+
+'    G.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+'
+'    G.OutVertical "N11"
+'
+'    G.Sort method:=SortMethod.Heap ', Reverse:=True
+'
+'    G.OutVertical "O11"
+
+
     'A.Reverse
-    
+
     'A.OutVertical "E11"
 
+    If src Then Application.ScreenUpdating = True
 
 End Sub
 

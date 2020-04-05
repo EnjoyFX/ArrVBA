@@ -13,12 +13,13 @@ Option Explicit
 
 Const className$ = "ArrVBA"    ' Used in error handling process messages
 
-Public Enum SortMethod
+Public Enum SortMethod    ' sort methods allowed
     BuiltIn = 0
     Insertion = 1
     Bubble = 2
     Selection = 3
     Quick = 4
+    'Heap = 5
 End Enum
 
 
@@ -27,11 +28,10 @@ Private theArr As Variant    ' Variant Array
 Private t_Based As Integer    ' Base of array, default 0
 
 
-
 Private Sub Class_Initialize()
 
     theArr = Empty
-    Count = 0
+    Count = 0 'CVErr(xlErrNA)
     t_Based = 0
 
 End Sub
@@ -39,6 +39,12 @@ End Sub
 
 
 Public Property Let Based(ByVal value%)
+
+    If t_Based <> value Then
+
+        Call reBaseArr(t_Based, value)
+
+    End If
 
     t_Based = value
 
@@ -52,6 +58,132 @@ Public Property Get Based() As Integer
 End Property
 
 
+Public Property Get MaxValue() As Variant
+
+    MaxValue = getMaxValue
+
+End Property
+
+Public Property Get MinValue() As Variant
+
+    MinValue = getMinValue
+
+End Property
+
+Private Function getMaxValue() As Variant
+
+    Dim n&, needAnotherTry As Boolean, theMax, test
+
+    On Error GoTo errHandler
+
+    getMaxValue = Empty
+
+    If IsEmpty(theArr) Then GoTo finish
+
+    needAnotherTry = False
+
+    getMaxValue = Application.WorksheetFunction.Max(theArr)
+
+    If needAnotherTry = True Then
+
+        theMax = -9E+99
+
+        For n = LBound(theArr) To UBound(theArr)
+
+            test = theArr(n)
+
+            If isOKNumeric(test) Then
+
+                If theMax < test Then theMax = test
+
+            End If
+
+        Next n
+
+        getMaxValue = theMax
+
+    End If
+
+finish:
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    #If debug_me = True Then
+        If Err.Number <> 1004 Then Call tinyHandler("_getMaxValue", Err)
+    #End If
+    needAnotherTry = True
+    Err.Clear
+    Resume Next
+
+End Function
+
+
+Private Function getMinValue() As Variant
+
+    Dim n&, needAnotherTry As Boolean, theMin, test
+
+    On Error GoTo errHandler
+
+    getMinValue = Empty
+
+    If IsEmpty(theArr) Then GoTo finish
+
+    needAnotherTry = False
+
+    getMinValue = Application.WorksheetFunction.Min(theArr)
+
+    If needAnotherTry = True Then
+
+        theMin = 9E+99
+
+        For n = LBound(theArr) To UBound(theArr)
+
+            test = theArr(n)
+
+            If isOKNumeric(test) Then
+
+                If theMin > test Then theMin = test
+
+            End If
+
+        Next n
+
+        getMinValue = theMin
+
+    End If
+
+finish:
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    #If debug_me = True Then
+        If Err.Number <> 1004 Then Call tinyHandler("_getMinValue", Err)
+    #End If
+    needAnotherTry = True
+    Err.Clear
+    Resume Next
+
+End Function
+
+Private Function isOKNumeric(ByVal value As Variant) As Boolean
+
+' internal tester for non-error and  numeric value
+
+    If IsError(value) = False Then
+
+        isOKNumeric = IsNumeric(value)
+
+    End If
+
+End Function
 
 Sub PrintMe(Optional ByVal delim = ", ", _
             Optional ByRef toVar$ = "")
@@ -62,6 +194,8 @@ Sub PrintMe(Optional ByVal delim = ", ", _
 
     Const this_me$ = "PrintMe"
 
+    Dim n&, needAnotherTry As Boolean, B, test
+
     On Error GoTo errHandler
 
     #If debug_me = True Then
@@ -69,9 +203,25 @@ Sub PrintMe(Optional ByVal delim = ", ", _
         starts = Timer
     #End If
 
+    needAnotherTry = False
+
     toVar = Join(theArr, delim)
 
+    If needAnotherTry = True Then
+
+        B = copyArr(theArr)    ' working with copy to make no changes in main array
+
+        For n = LBound(B) To UBound(B)
+            test = B(n)
+            If IsError(test) Then B(n) = CStr(test)    ' converting to string
+        Next n
+
+        toVar = Join(B, delim)
+
+    End If
+
     Debug.Print toVar
+
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -83,13 +233,21 @@ Sub PrintMe(Optional ByVal delim = ", ", _
 
 errHandler:
 
-    Call tinyHandler(this_me, Err)
+    #If debug_me = True Then
+        If Err.Number <> 13 Then Call tinyHandler(this_me, Err)
+    #End If
+    needAnotherTry = True
     Err.Clear
     Resume Next
 
 End Sub
 
 
+Private Function copyArr(ByVal Arr) As Variant
+
+    copyArr = Arr
+
+End Function
 
 Function Add(ByVal elem) As Variant    ' base 0+
 
@@ -115,6 +273,7 @@ Function Add(ByVal elem) As Variant    ' base 0+
         remax = UBound(theArr) + 1
         ReDim Preserve theArr(t_Based To remax)
         theArr(remax) = elem
+
         Count = Count + 1
 
     End If
@@ -458,7 +617,7 @@ errHandler:
 
 End Sub
 
-Sub Reverse(Optional ByVal method)
+Sub reverse(Optional ByVal method)
 
     Const this_me$ = "Reverse"
 
@@ -506,19 +665,19 @@ End Sub
 
 
 Sub Sort(Optional ByVal method% = SortMethod.Insertion, _
-         Optional ByVal Reverse = False)
+         Optional ByVal reverse = False)
 
     Select Case method
 
-    Case SortMethod.BuiltIn: theArr = sortExcel(theArr, Reverse:=Reverse)
+    Case SortMethod.BuiltIn: theArr = sortExcel(theArr, reverse:=reverse)
 
-    Case SortMethod.Insertion: theArr = sortInsertion(theArr, Reverse:=Reverse)
+    Case SortMethod.Insertion: theArr = sortInsertion(theArr, reverse:=reverse)
 
-    Case SortMethod.Bubble: theArr = sortBubble(theArr, Reverse:=Reverse)
+    Case SortMethod.Bubble: theArr = sortBubble(theArr, reverse:=reverse)
 
-    Case SortMethod.Selection: theArr = sortSelection(theArr, Reverse:=Reverse)
-    
-    Case SortMethod.Quick: theArr = sortQuick(theArr, Reverse:=Reverse)
+    Case SortMethod.Selection: theArr = sortSelection(theArr, reverse:=reverse)
+
+    Case SortMethod.Quick: theArr = sortQuick(theArr, reverse:=reverse)
 
     Case Else: Debug.Print "Sort Method unknown!"
 
@@ -527,12 +686,12 @@ Sub Sort(Optional ByVal method% = SortMethod.Insertion, _
 End Sub
 
 Private Function sortExcel(Arr, _
-                           Optional ByVal Reverse = False) As Variant
+                           Optional ByVal reverse = False) As Variant
 
 End Function
 
 Private Function sortInsertion(Arr, _
-                               Optional ByVal Reverse = False) As Variant
+                               Optional ByVal reverse = False) As Variant
 
     Const this_me$ = "sortInsertion"
 
@@ -549,7 +708,7 @@ Private Function sortInsertion(Arr, _
 
     maxN = UBound(Arr)
 
-    If Reverse = False Then
+    If reverse = False Then
 
         If minN + 1 = maxN Then
 
@@ -643,7 +802,7 @@ End Function
 
 
 Private Function sortBubble(Arr, _
-                            Optional ByVal Reverse = False) As Variant
+                            Optional ByVal reverse = False) As Variant
 
     Const this_me$ = "sortBubble"
 
@@ -660,7 +819,7 @@ Private Function sortBubble(Arr, _
 
     maxN = UBound(Arr)
 
-    If Reverse = False Then
+    If reverse = False Then
 
         If minN + 1 = maxN Then
 
@@ -750,7 +909,7 @@ End Function
 
 
 Private Function sortSelection(Arr, _
-                               Optional ByVal Reverse = False) As Variant
+                               Optional ByVal reverse = False) As Variant
 
     Const this_me$ = "sortSelection"
 
@@ -767,7 +926,7 @@ Private Function sortSelection(Arr, _
 
     maxN = UBound(Arr)
 
-    If Reverse = False Then
+    If reverse = False Then
 
         If minN + 1 = maxN Then
 
@@ -851,7 +1010,7 @@ End Function
 
 
 Private Function sortQuick(Arr, _
-                           Optional ByVal Reverse = False, _
+                           Optional ByVal reverse = False, _
                            Optional ByVal minN& = -1, _
                            Optional ByVal maxN& = -1) As Variant
 
@@ -860,9 +1019,9 @@ Private Function sortQuick(Arr, _
     Dim n&, midVal, tmpMin, tmpMax, tmp, needShow As Boolean
 
     On Error GoTo errHandler
-    
+
     needShow = False
-    
+
     If minN = -1 Then
         #If debug_me = True Then
             Dim starts
@@ -875,13 +1034,12 @@ Private Function sortQuick(Arr, _
     tmpMin = minN
 
     If maxN = -1 Then maxN = UBound(Arr)
-    
-    
+
     tmpMax = maxN
 
-    If Reverse = False Then
+    midVal = Arr((minN + maxN) \ 2)
 
-        midVal = Arr((minN + maxN) \ 2)
+    If reverse = False Then
 
         While tmpMin <= tmpMax
 
@@ -911,12 +1069,40 @@ Private Function sortQuick(Arr, _
 
         Wend
 
-        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, Reverse:=Reverse)
-        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, Reverse:=Reverse)
+        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, reverse:=reverse)
+        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, reverse:=reverse)
 
     Else
 
+        While tmpMin <= tmpMax
 
+            While (Arr(tmpMin) > midVal And tmpMin < maxN)
+
+                tmpMin = tmpMin + 1
+
+            Wend
+
+
+            While (midVal > Arr(tmpMax) And tmpMax > minN)
+
+                tmpMax = tmpMax - 1
+
+            Wend
+
+            If tmpMin <= tmpMax Then
+
+                tmp = Arr(tmpMin)
+                Arr(tmpMin) = Arr(tmpMax)
+                Arr(tmpMax) = tmp
+                tmpMin = tmpMin + 1
+                tmpMax = tmpMax - 1
+
+            End If
+
+        Wend
+
+        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, reverse:=reverse)
+        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, reverse:=reverse)
 
     End If
 
@@ -940,6 +1126,39 @@ errHandler:
 
 End Function
 
+
+Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%)
+
+    Const this_me$ = "reBaseArr"
+
+    Dim n&, maxNew
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    maxNew = UBound(theArr) + (toBase - fromBase)
+
+    ReDim Preserve theArr(toBase To maxNew)
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Sub
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Sub
 
 Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 
