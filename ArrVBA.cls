@@ -8,18 +8,18 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
+Option Base 0    ' 0 it's default, but added explicitely
 
 #Const debug_me = True     ' Compiler directive  - if debug and timing needed
 
 Const className$ = "ArrVBA"    ' Used in error handling process messages
 
 Public Enum SortMethod    ' sort methods allowed
-    BuiltIn = 0
     Insertion = 1
     Bubble = 2
     Selection = 3
     Quick = 4
-    'Heap = 5
+    Heap = 5    ' default
 End Enum
 
 
@@ -31,7 +31,7 @@ Private t_Based As Integer    ' Base of array, default 0
 Private Sub Class_Initialize()
 
     theArr = Empty
-    Count = 0 'CVErr(xlErrNA)
+    Count = 0    'CVErr(xlErrNA)
     t_Based = 0
 
 End Sub
@@ -617,7 +617,7 @@ errHandler:
 
 End Sub
 
-Sub reverse(Optional ByVal method)
+Sub Reverse(Optional ByVal Method)
 
     Const this_me$ = "Reverse"
 
@@ -664,20 +664,20 @@ End Sub
 
 
 
-Sub Sort(Optional ByVal method% = SortMethod.Insertion, _
-         Optional ByVal reverse = False)
+Sub Sort(Optional ByVal Method% = SortMethod.Heap, _
+         Optional ByVal Reverse = False)
 
-    Select Case method
+    Select Case Method
 
-    Case SortMethod.BuiltIn: theArr = sortExcel(theArr, reverse:=reverse)
+    Case SortMethod.Insertion: theArr = sortInsertion(theArr, Reverse:=Reverse)
 
-    Case SortMethod.Insertion: theArr = sortInsertion(theArr, reverse:=reverse)
+    Case SortMethod.Bubble: theArr = sortBubble(theArr, Reverse:=Reverse)
 
-    Case SortMethod.Bubble: theArr = sortBubble(theArr, reverse:=reverse)
+    Case SortMethod.Selection: theArr = sortSelection(theArr, Reverse:=Reverse)
 
-    Case SortMethod.Selection: theArr = sortSelection(theArr, reverse:=reverse)
+    Case SortMethod.Quick: theArr = sortQuick(theArr, Reverse:=Reverse)
 
-    Case SortMethod.Quick: theArr = sortQuick(theArr, reverse:=reverse)
+    Case SortMethod.Heap: theArr = sortHeap(theArr, Reverse:=Reverse)
 
     Case Else: Debug.Print "Sort Method unknown!"
 
@@ -685,13 +685,10 @@ Sub Sort(Optional ByVal method% = SortMethod.Insertion, _
 
 End Sub
 
-Private Function sortExcel(Arr, _
-                           Optional ByVal reverse = False) As Variant
 
-End Function
 
 Private Function sortInsertion(Arr, _
-                               Optional ByVal reverse = False) As Variant
+                               Optional ByVal Reverse = False) As Variant
 
     Const this_me$ = "sortInsertion"
 
@@ -708,7 +705,7 @@ Private Function sortInsertion(Arr, _
 
     maxN = UBound(Arr)
 
-    If reverse = False Then
+    If Reverse = False Then
 
         If minN + 1 = maxN Then
 
@@ -802,7 +799,7 @@ End Function
 
 
 Private Function sortBubble(Arr, _
-                            Optional ByVal reverse = False) As Variant
+                            Optional ByVal Reverse = False) As Variant
 
     Const this_me$ = "sortBubble"
 
@@ -819,7 +816,7 @@ Private Function sortBubble(Arr, _
 
     maxN = UBound(Arr)
 
-    If reverse = False Then
+    If Reverse = False Then
 
         If minN + 1 = maxN Then
 
@@ -909,7 +906,7 @@ End Function
 
 
 Private Function sortSelection(Arr, _
-                               Optional ByVal reverse = False) As Variant
+                               Optional ByVal Reverse = False) As Variant
 
     Const this_me$ = "sortSelection"
 
@@ -926,7 +923,7 @@ Private Function sortSelection(Arr, _
 
     maxN = UBound(Arr)
 
-    If reverse = False Then
+    If Reverse = False Then
 
         If minN + 1 = maxN Then
 
@@ -1010,7 +1007,7 @@ End Function
 
 
 Private Function sortQuick(Arr, _
-                           Optional ByVal reverse = False, _
+                           Optional ByVal Reverse = False, _
                            Optional ByVal minN& = -1, _
                            Optional ByVal maxN& = -1) As Variant
 
@@ -1039,7 +1036,7 @@ Private Function sortQuick(Arr, _
 
     midVal = Arr((minN + maxN) \ 2)
 
-    If reverse = False Then
+    If Reverse = False Then
 
         While tmpMin <= tmpMax
 
@@ -1069,8 +1066,8 @@ Private Function sortQuick(Arr, _
 
         Wend
 
-        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, reverse:=reverse)
-        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, reverse:=reverse)
+        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, Reverse:=Reverse)
+        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, Reverse:=Reverse)
 
     Else
 
@@ -1101,12 +1098,11 @@ Private Function sortQuick(Arr, _
 
         Wend
 
-        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, reverse:=reverse)
-        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, reverse:=reverse)
+        If minN < tmpMax Then Call sortQuick(Arr, minN:=minN, maxN:=tmpMax, Reverse:=Reverse)
+        If tmpMin < maxN Then Call sortQuick(Arr, minN:=tmpMin, maxN:=maxN, Reverse:=Reverse)
 
     End If
 
-finish:
 
     sortQuick = Arr
 
@@ -1126,6 +1122,206 @@ errHandler:
 
 End Function
 
+
+Private Function sortHeap(Arr, _
+                          Optional ByVal Reverse = False) As Variant
+
+    Const this_me$ = "sortHeap"
+
+    Dim n&, m&, minN&, maxN&, i&, idxArr
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(Arr)
+
+    maxN = UBound(Arr)
+
+    n = Count
+
+    ReDim idxArr(minN To maxN)    ' allocate array of indexes
+
+    If Reverse = False Then
+
+        ' fill array of Indexes
+        For i = minN To maxN
+            idxArr(i) = i
+        Next i
+
+        For i = n \ 2 - 1 To 0 Step -1
+            Call Heapify(Arr, idxArr, i, n)    ' move highest up
+        Next i
+
+        For m = n To 2 Step -1
+            Call swapPair(idxArr, 0, m - 1)
+            Call Heapify(Arr, idxArr, 0, m - 1)    ' move highest up
+        Next
+
+        For i = minN To maxN
+            idxArr(i) = Arr(idxArr(i))    ' refill array by new indexes
+        Next i
+
+        sortHeap = idxArr
+
+    Else
+
+
+        ' fill array of Indexes
+        For i = minN To maxN
+            idxArr(i) = i
+        Next i
+
+        For i = n \ 2 - 1 To 0 Step -1
+            Call Heapify(Arr, idxArr, i, n)    ' move highest up
+        Next i
+
+        For m = n To 2 Step -1
+            Call swapPair(idxArr, 0, m - 1)
+            Call Heapify(Arr, idxArr, 0, m - 1)    ' move highest up
+        Next
+
+        ReDim idxArr2(minN To maxN)    ' allocate array of indexes
+
+        For i = minN To maxN
+            idxArr2(i) = Arr(idxArr(maxN - i + minN))    ' refill and reverse array by new indexes
+        Next i
+
+        sortHeap = idxArr2
+
+    End If
+
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+Private Sub Heapify(Arr, idxArr, ByVal i&, ByVal n&)
+
+    Const this_me$ = "Heapify"
+
+    Dim nDiv&, k&
+
+    On Error GoTo errHandler
+
+    nDiv = n \ 2
+
+    Do While i < nDiv
+
+        k = 2 * i + 1
+
+        If k + 1 < n Then
+            If Arr(idxArr(k)) < Arr(idxArr(k + 1)) Then k = k + 1
+        End If
+
+        If Arr(idxArr(i)) >= Arr(idxArr(k)) Then Exit Do
+
+        Call swapPair(idxArr, i, k)
+
+        i = k
+
+    Loop
+
+    On Error GoTo 0
+
+    Exit Sub
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Sub
+
+Function isSorted(Optional ByRef isAscending As Boolean) As Boolean
+
+    Const this_me$ = "isSorted"
+
+    Dim n&, minN&, maxN&
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(theArr)
+
+    maxN = UBound(theArr)
+
+    If theArr(minN) < theArr(maxN) Then isAscending = True Else isAscending = False
+
+    isSorted = True    ' optimistic start
+
+    If isAscending = True Then
+
+        For n = minN To maxN - 1
+
+            If theArr(n) > theArr(n + 1) Then
+                isSorted = False
+                Exit For
+            End If
+
+        Next n
+
+    Else
+
+        For n = maxN To minN + 1 Step -1
+
+            If theArr(n) > theArr(n - 1) Then
+                isSorted = False
+                Exit For
+            End If
+
+        Next n
+
+    End If
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+
+Private Sub swapPair(idxArr, ByVal i&, ByVal j&)
+
+    Dim tmp&
+
+    tmp = idxArr(i)
+
+    idxArr(i) = idxArr(j)
+
+    idxArr(j) = tmp
+
+End Sub
 
 Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%)
 
