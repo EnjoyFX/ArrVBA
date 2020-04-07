@@ -4,7 +4,7 @@ Class for operations with arrays in VBA
 ```vba
 Sub Example()
 
-    Const num = 1000, lower = 0, upper = 1000000, reverse = False
+    Const Num = 1000, Lower = 0, Upper = 1000000, Reverse = False
 
     Dim A As New ArrVBA, B As New ArrVBA, C, D, E, src As Boolean
 
@@ -33,7 +33,7 @@ Sub Example()
 
     A.OutHorizontal "B7", bold:=True
 
-    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
 
     A.OutHorizontal "B9"
 
@@ -41,48 +41,51 @@ Sub Example()
 
     'A.OutDiagonal "D11"
 
-    A.Sort method:=SortMethod.Bubble, reverse:=reverse
+    A.Sort Method:=SortMethod.Bubble, Reverse:=Reverse
 
     A.OutVertical "C11"
 
 
-    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
 
     A.OutVertical "E11"
 
-    A.Sort method:=SortMethod.Insertion, reverse:=reverse
-    
+    A.Sort Method:=SortMethod.Insertion, Reverse:=Reverse
+
     A.OutVertical "F11"
 
 
 
-    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
 
     A.OutVertical "H11"
 
-    A.Sort method:=SortMethod.Selection, reverse:=reverse
+    A.Sort Method:=SortMethod.Selection, Reverse:=Reverse
 
     A.OutVertical "I11"
 
 
-    A.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
+    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
 
     A.OutVertical "K11"
 
-    A.Sort method:=SortMethod.Quick, reverse:=reverse
+    A.Sort Method:=SortMethod.Quick, Reverse:=Reverse
 
     A.OutVertical "L11"
 
 
-'    G.RndFill elements:=num, lowerBound:=lower, upperBound:=upper
-'
-'    G.OutVertical "N11"
-'
-'    G.Sort method:=SortMethod.Heap ', Reverse:=True
-'
-'    G.OutVertical "O11"
+    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
 
+    A.OutVertical "N11"
+    
+    Debug.Print "Array is sorted = "; A.isSorted
+    
+    A.Sort Method:=SortMethod.Heap, Reverse:=Reverse
 
+    A.OutVertical "O11"
+
+    Debug.Print "Array is sorted = "; A.isSorted
+    
     'A.Reverse
 
     'A.OutVertical "E11"
