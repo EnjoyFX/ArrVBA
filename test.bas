@@ -1,4 +1,6 @@
 Attribute VB_Name = "test"
+Option Explicit
+
 Sub Example()
 
     Const Num = 1000, Lower = 0, Upper = 1000000, Reverse = False
@@ -86,6 +88,8 @@ Sub Example()
     'A.Reverse
 
     'A.OutVertical "E11"
+    
+    C = A.FilterArr(55) ' filter to C all elemets where value "55" is present (autoconverted numbers to string)
 
     If src Then Application.ScreenUpdating = True
 

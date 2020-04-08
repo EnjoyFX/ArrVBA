@@ -303,6 +303,38 @@ Function AsVariant() As Variant
 
 End Function
 
+Function AsString() As String()
+
+    Const this_me$ = "AsString"
+
+    Dim B() As String, n&, minN&, maxN&
+
+    On Error GoTo errHandler
+
+    minN = LBound(theArr)
+    
+    maxN = UBound(theArr)
+
+    ReDim B(minN To maxN)
+
+    For n = minN To maxN
+        B(n) = CStr(theArr(n))
+    Next n
+
+    AsString = B
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
 
 Function AsVertical() As Variant
 
@@ -1355,6 +1387,31 @@ errHandler:
     Resume Next
 
 End Sub
+
+
+Function FilterArr(ByVal searchFor$, _
+    Optional ByVal Include As Boolean = True, _
+    Optional ByVal Compare% = 1) As Variant
+    
+    ' Filtering value to string array
+    
+    Const this_me$ = "FilterArr"
+    
+    On Error GoTo errHandler
+
+    FilterArr = Filter(theArr, searchFor, Include:=Include, Compare:=Compare)
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
 
 Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 
