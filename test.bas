@@ -21,7 +21,7 @@ Sub Example()
     A.Add "of ArrVBA Class"
 
     Debug.Print A.MaxValue
-    
+
     Debug.Print A.MinValue
 
     A.PrintMe
@@ -76,20 +76,20 @@ Sub Example()
     A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
 
     A.OutVertical "N11"
-    
+
     Debug.Print "Array is sorted = "; A.isSorted
-    
+
     A.Sort Method:=SortMethod.Heap, Reverse:=Reverse
 
     A.OutVertical "O11"
 
     Debug.Print "Array is sorted = "; A.isSorted
-    
+
     'A.Reverse
 
     'A.OutVertical "E11"
-    
-    C = A.FilterArr(55) ' filter to C all elemets where value "55" is present (autoconverted numbers to string)
+
+    C = A.FilterArr(55)    ' filter to C all elemets where value "55" is present (autoconverted numbers to string)
 
     If src Then Application.ScreenUpdating = True
 

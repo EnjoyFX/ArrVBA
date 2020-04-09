@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-Option Base 0    ' 0 it's default, but added explicitely
+'Option Base 0    ' 0 it's default, but added explicitly
 
 #Const debug_me = True     ' Compiler directive  - if debug and timing needed
 
@@ -312,7 +312,7 @@ Function AsString() As String()
     On Error GoTo errHandler
 
     minN = LBound(theArr)
-    
+
     maxN = UBound(theArr)
 
     ReDim B(minN To maxN)
@@ -353,7 +353,7 @@ Function AsVertical() As Variant
 
     maxB = UBound(theArr)
 
-    If Based = 0 Then adder = 1 Else adder = 0
+    adder = defineAdder(Based)
 
     ReDim B(1 To Count, 1 To 1)
 
@@ -399,7 +399,7 @@ Function AsHorizontal() As Variant
 
     maxB = UBound(theArr)
 
-    If Based = 0 Then adder = 1 Else adder = 0
+    adder = defineAdder(Based)
 
     ReDim B(1 To 1, 1 To Count)
 
@@ -451,7 +451,9 @@ Sub RndFill(ByVal elements&, _
 
     End If
 
-    If t_Based = 0 Then shifter = 1 Else shifter = 0
+    'If t_Based = 0 Then shifter = 1 Else shifter = 0
+
+    shifter = defineAdder(t_Based)
 
     elements = elements - shifter
 
@@ -508,7 +510,7 @@ Sub OutVertical(ByVal startAddr$, _
 
     maxB = UBound(theArr)
 
-    If Based = 0 Then adder = 1 Else adder = 0
+    adder = defineAdder(Based)
 
     ReDim B(1 To Count, 1 To 1)
 
@@ -561,7 +563,7 @@ Sub OutHorizontal(ByVal startAddr$, _
 
     maxB = UBound(theArr)
 
-    If Based = 0 Then adder = 1 Else adder = 0
+    adder = defineAdder(Based)
 
     ReDim B(1 To 1, 1 To Count)
 
@@ -615,7 +617,7 @@ Sub OutDiagonal(ByVal startAddr$, _
 
     maxB = UBound(theArr)
 
-    If Based = 0 Then adder = 1 Else adder = 0
+    adder = defineAdder(Based)
 
     ReDim B(1 To Count, 1 To Count)
 
@@ -1368,9 +1370,17 @@ Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%)
         starts = Timer
     #End If
 
-    maxNew = UBound(theArr) + (toBase - fromBase)
+    If IsEmpty(theArr) = True Then
+        'nothing to do here
+        GoTo finish
+        'maxNew = toBase - fromBase
+        'ReDim theArr(toBase To maxNew)
+    Else
+        maxNew = UBound(theArr) + (toBase - fromBase)
+        ReDim Preserve theArr(toBase To maxNew)
+    End If
 
-    ReDim Preserve theArr(toBase To maxNew)
+finish:
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -1390,13 +1400,13 @@ End Sub
 
 
 Function FilterArr(ByVal searchFor$, _
-    Optional ByVal Include As Boolean = True, _
-    Optional ByVal Compare% = 1) As Variant
-    
-    ' Filtering value to string array
-    
+                   Optional ByVal Include As Boolean = True, _
+                   Optional ByVal Compare% = 1) As Variant
+
+' Filtering value to string array
+
     Const this_me$ = "FilterArr"
-    
+
     On Error GoTo errHandler
 
     FilterArr = Filter(theArr, searchFor, Include:=Include, Compare:=Compare)
@@ -1410,6 +1420,24 @@ errHandler:
     Call tinyHandler(this_me, Err)
     Err.Clear
     Resume Next
+
+End Function
+
+Private Function defineAdder(ByVal Based) As Integer
+
+    Dim adder%
+
+    If Based = 0 Then
+        adder = 1
+    Else
+        If Based = 1 Then
+            adder = 0
+        Else
+            adder = -Based + 1
+        End If
+    End If
+
+    defineAdder = adder
 
 End Function
 
