@@ -451,25 +451,20 @@ Sub RndFill(ByVal elements&, _
 
     End If
 
-    'If t_Based = 0 Then shifter = 1 Else shifter = 0
 
-    shifter = defineAdder(t_Based)
-
-    elements = elements - shifter
-
-    ReDim theArr(t_Based To elements)
+    ReDim theArr(t_Based To t_Based + elements - 1)
 
     ' Abstract: Int ((upperBound - lowerBound + 1) * Rnd + lowerBound)
 
     bounds = upperBound - lowerBound + 1
 
-    For n = t_Based To elements
+    For n = t_Based To t_Based + elements - 1
 
         theArr(n) = Int(bounds * Rnd + lowerBound)
 
     Next
 
-    Count = elements - t_Based + shifter
+    Count = elements
 
 finish:
 
@@ -522,7 +517,7 @@ Sub OutVertical(ByVal startAddr$, _
 
     If ws Is Nothing Then Set ws = ActiveSheet
 
-    Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(maxB - minB + (1 - adder)))
+    Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(maxB - minB))
 
     rngOut.Value2 = B
     If bold Then rngOut.Font.bold = True
@@ -575,7 +570,7 @@ Sub OutHorizontal(ByVal startAddr$, _
 
     If ws Is Nothing Then Set ws = ActiveSheet
 
-    Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(, maxB - minB + (1 - adder)))
+    Set rngOut = Range(ws.Range(startAddr), ws.Range(startAddr).Offset(, maxB - minB))
 
     rngOut.Value2 = B
     If bold Then rngOut.Font.bold = True
@@ -630,7 +625,7 @@ Sub OutDiagonal(ByVal startAddr$, _
     If ws Is Nothing Then Set ws = ActiveSheet
 
     Set rngOut = Range(ws.Range(startAddr), _
-                       ws.Range(startAddr).Offset(maxB - minB + (1 - adder), maxB - minB + (1 - adder)))
+                       ws.Range(startAddr).Offset(maxB - minB, maxB - minB))
 
     rngOut.Value2 = B
     If bold Then rngOut.Font.bold = True
@@ -756,7 +751,7 @@ Private Function sortInsertion(Arr, _
 
             m = n - 1
 
-            Do While m >= 0
+            Do While m >= t_Based
                 If Arr(m) > item_to_insert Then
                     Arr(m + 1) = Arr(m)
                     m = m - 1
@@ -786,7 +781,7 @@ Private Function sortInsertion(Arr, _
 
             m = n - 1
 
-            Do While m >= 0
+            Do While m >= t_Based
                 If Arr(m) < item_to_insert Then
                     Arr(m + 1) = Arr(m)
                     m = m - 1
@@ -1186,13 +1181,13 @@ Private Function sortHeap(Arr, _
             idxArr(i) = i
         Next i
 
-        For i = n \ 2 - 1 To 0 Step -1
+        For i = n \ 2 - t_Based To t_Based Step -1
             Call Heapify(Arr, idxArr, i, n)    ' move highest up
         Next i
 
-        For m = n To 2 Step -1
-            Call swapPair(idxArr, 0, m - 1)
-            Call Heapify(Arr, idxArr, 0, m - 1)    ' move highest up
+        For m = n To t_Based + 1 Step -1
+            Call swapPair(idxArr, t_Based, m - 1)
+            Call Heapify(Arr, idxArr, t_Based, m - 1)    ' move highest up
         Next
 
         For i = minN To maxN
@@ -1257,7 +1252,7 @@ Private Sub Heapify(Arr, idxArr, ByVal i&, ByVal n&)
 
     Do While i < nDiv
 
-        k = 2 * i + 1
+        k = 2 * i + t_Based
 
         If k + 1 < n Then
             If Arr(idxArr(k)) < Arr(idxArr(k + 1)) Then k = k + 1
