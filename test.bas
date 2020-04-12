@@ -1,111 +1,92 @@
 Attribute VB_Name = "test"
+' Tests for ArrVBA methods
+' call runTests() - to run tests
+' is some error is present - tests will stop on line with error value
+
 Option Explicit
 
-Sub Example()
 
-    Const Num = 1000, Lower = 0, Upper = 1000000, Reverse = False
+Sub runTests()
 
-    Dim A As New ArrVBA, B As New ArrVBA, C, D, E, src As Boolean
+    Dim A As New ArrVBA, toVar$, B As Variant
 
-    src = Application.ScreenUpdating
-
-    If src Then Application.ScreenUpdating = False
-
-
+    ' test for Based 0
+    
     A.Based = 0
-
+    
+    Debug.Assert A.Based = 0
+    
+    Debug.Assert A.Count = 0
+    
+    Debug.Assert A.AsString = vbNullString
+    
+    A.Add "one"
+    
+    Debug.Assert A.Arr(0) = "one"
+    
+    
+    A.Add "two"
+    
+    Debug.Assert A.Arr(1) = "two"
+    
+    
     A.Add 2020
-    A.Add "This is"
-    A.Add "short"
-    A.Add "test"
-    A.Add "of ArrVBA Class"
+    
+    Debug.Assert A.Arr(2) = 2020
+    
+    A.Add 777
+    
+    Debug.Assert A.Arr(3) = 777
+    
+    Debug.Assert A.Count = 4
+    
+    Debug.Assert A.MaxValue = 2020
+    
+    Debug.Assert A.MinValue = 777
+    
+    Debug.Assert A.AsString(",") = "one,two,2020,777"
+    
+    Call A.PrintMe(delim:=", ", toVar:=toVar)
+    
+    Debug.Assert toVar = "one, two, 2020, 777"
+    
+    
+    A.Reverse
+    
+    Debug.Assert A.AsString(",") = "777,2020,two,one"
+    
+    A.Add "tWeNtY"
+    
+    B = A.FilterArr("tw")
+    
+    Debug.Assert Join(B, ",") = "two,tWeNtY"
+    
+    Debug.Assert A.isIncludeTemplate("tw") = True
+    
+    Debug.Assert A.isIncludeTemplate("ti") = False
+    
+    A.Clear
+    
+    
+    ' test for Based 1
+    
+    A.Based = 1
+    
+    Debug.Assert A.Based = 1
+    
+    
+    ' test for Based 10
+    
+    A.Based = 10
+    
+    Debug.Assert A.Based = 10
+    
+    
+    Call MsgBox("Tests are passed")
+    
 
-    Debug.Print A.MaxValue
-
-    Debug.Print A.MinValue
-
-    A.PrintMe
-
-    C = A.AsVariant
-    D = A.AsVertical
-    E = A.AsHorizontal
-
-    A.OutHorizontal "B7", bold:=True
-
-    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
-
-    A.OutHorizontal "B9"
-
-    A.OutVertical "B11"
-
-    ' A.OutDiagonal "b17"
-
-    A.Sort Method:=SortMethod.Bubble, Reverse:=Reverse
-
-    A.OutVertical "C11"
-
-
-    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
-
-    A.OutVertical "E11"
-
-    A.Sort Method:=SortMethod.Insertion, Reverse:=Reverse
-
-    A.OutVertical "F11"
-
-
-
-    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
-
-    A.OutVertical "H11"
-
-    A.Sort Method:=SortMethod.Selection, Reverse:=Reverse
-
-    A.OutVertical "I11"
-
-
-    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
-
-    A.OutVertical "K11"
-
-    A.Sort Method:=SortMethod.Quick, Reverse:=Reverse
-
-    A.OutVertical "L11"
-
-
-    A.RndFill elements:=Num, lowerBound:=Lower, upperBound:=Upper
-
-    A.OutVertical "N11"
-
-    Debug.Print "Array is sorted = "; A.isSorted
-
-    A.Sort Method:=SortMethod.Heap, Reverse:=Reverse
-
-    A.OutVertical "O11"
-
-    Debug.Print "Array is sorted = "; A.isSorted
-
-    'A.Reverse
-
-    'A.OutVertical "E11"
-
-    C = A.FilterArr(55)    ' filter to C all elemets where value "55" is present (autoconverted numbers to string)
-
-    If src Then Application.ScreenUpdating = True
 
 End Sub
 
-Sub clsSheet()
 
-    Dim src As Boolean
-
-    src = Application.ScreenUpdating
-
-    If src Then Application.ScreenUpdating = False
-
-    ActiveSheet.Cells.Clear
-
-    If src Then Application.ScreenUpdating = True
-
-End Sub
 

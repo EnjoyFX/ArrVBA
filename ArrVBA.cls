@@ -22,20 +22,26 @@ Public Enum SortMethod    ' sort methods allowed
     Heap = 5    ' default
 End Enum
 
-
-Private Count As Long    ' Counter of elements in ArrVBA instance
+' private class-level variables
+Private t_Count As Long     ' Counter of elements in ArrVBA instance
 Private theArr As Variant    ' Variant Array
 Private t_Based As Integer    ' Base of array, default 0
 
 
 Private Sub Class_Initialize()
 
-    theArr = Empty
-    Count = 0    'CVErr(xlErrNA)
-    t_Based = 0
+    Call Clear
 
 End Sub
 
+
+Public Sub Clear()
+
+    theArr = Empty
+    t_Count = 0    'CVErr(xlErrNA)
+    t_Based = 0
+
+End Sub
 
 
 Public Property Let Based(ByVal value%)
@@ -57,6 +63,17 @@ Public Property Get Based() As Integer
 
 End Property
 
+Public Property Get Count() As Long
+
+    Count = t_Count
+
+End Property
+
+Public Property Get Arr() As Variant
+
+    Arr = theArr
+
+End Property
 
 Public Property Get MaxValue() As Variant
 
@@ -173,6 +190,8 @@ errHandler:
 
 End Function
 
+
+
 Private Function isOKNumeric(ByVal value As Variant) As Boolean
 
 ' internal tester for non-error and  numeric value
@@ -185,8 +204,8 @@ Private Function isOKNumeric(ByVal value As Variant) As Boolean
 
 End Function
 
-Sub PrintMe(Optional ByVal delim = ", ", _
-            Optional ByRef toVar$ = "")
+Public Sub PrintMe(Optional ByVal delim = ", ", _
+                   Optional ByRef toVar$ = "")
 
 ' Prints array to immendiate window [and to variable toVar]
 ' [delim] - delimiter for elements of array
@@ -266,7 +285,7 @@ Function Add(ByVal elem) As Variant    ' base 0+
 
         ReDim theArr(t_Based To t_Based)
         theArr(t_Based) = elem
-        Count = 1
+        t_Count = 1
 
     Else
 
@@ -274,7 +293,7 @@ Function Add(ByVal elem) As Variant    ' base 0+
         ReDim Preserve theArr(t_Based To remax)
         theArr(remax) = elem
 
-        Count = Count + 1
+        t_Count = t_Count + 1
 
     End If
 
@@ -303,9 +322,33 @@ Function AsVariant() As Variant
 
 End Function
 
-Function AsString() As String()
+Function AsString(Optional ByVal delim = ",") As String
 
     Const this_me$ = "AsString"
+
+    On Error GoTo errHandler
+
+    If IsEmpty(theArr) = True Then
+        AsString = vbNullString
+    Else
+        AsString = Join(theArr, delim)
+    End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+Function AsStringArr() As String()
+
+    Const this_me$ = "AsStringArr"
 
     Dim B() As String, n&, minN&, maxN&
 
@@ -321,7 +364,7 @@ Function AsString() As String()
         B(n) = CStr(theArr(n))
     Next n
 
-    AsString = B
+    AsStringArr = B
 
     On Error GoTo 0
 
@@ -355,7 +398,7 @@ Function AsVertical() As Variant
 
     adder = defineAdder(Based)
 
-    ReDim B(1 To Count, 1 To 1)
+    ReDim B(1 To t_Count, 1 To 1)
 
     For n = minB To maxB
 
@@ -401,7 +444,7 @@ Function AsHorizontal() As Variant
 
     adder = defineAdder(Based)
 
-    ReDim B(1 To 1, 1 To Count)
+    ReDim B(1 To 1, 1 To t_Count)
 
     For n = minB To maxB
 
@@ -464,12 +507,12 @@ Sub RndFill(ByVal elements&, _
 
     Next
 
-    Count = elements
+    t_Count = elements
 
 finish:
 
     #If debug_me = True Then
-        Call tinyTiming(this_me & " for " & Count, Timer - starts)
+        Call tinyTiming(this_me & " for " & t_Count, Timer - starts)
     #End If
 
     On Error GoTo 0
@@ -507,7 +550,7 @@ Sub OutVertical(ByVal startAddr$, _
 
     adder = defineAdder(Based)
 
-    ReDim B(1 To Count, 1 To 1)
+    ReDim B(1 To t_Count, 1 To 1)
 
     For n = minB To maxB
 
@@ -560,7 +603,7 @@ Sub OutHorizontal(ByVal startAddr$, _
 
     adder = defineAdder(Based)
 
-    ReDim B(1 To 1, 1 To Count)
+    ReDim B(1 To 1, 1 To t_Count)
 
     For n = minB To maxB
 
@@ -614,7 +657,7 @@ Sub OutDiagonal(ByVal startAddr$, _
 
     adder = defineAdder(Based)
 
-    ReDim B(1 To Count, 1 To Count)
+    ReDim B(1 To t_Count, 1 To t_Count)
 
     For n = minB To maxB
 
@@ -646,7 +689,7 @@ errHandler:
 
 End Sub
 
-Sub Reverse(Optional ByVal Method)
+Sub Reverse()
 
     Const this_me$ = "Reverse"
 
@@ -1170,7 +1213,7 @@ Private Function sortHeap(Arr, _
 
     maxN = UBound(Arr)
 
-    n = Count
+    n = t_Count
 
     ReDim idxArr(minN To maxN)    ' allocate array of indexes
 
@@ -1394,9 +1437,9 @@ errHandler:
 End Sub
 
 
-Function FilterArr(ByVal searchFor$, _
-                   Optional ByVal Include As Boolean = True, _
-                   Optional ByVal Compare% = 1) As Variant
+Public Function FilterArr(ByVal searchFor$, _
+                          Optional ByVal Include As Boolean = True, _
+                          Optional ByVal Compare% = 1) As Variant
 
 ' Filtering value to string array
 
@@ -1417,6 +1460,43 @@ errHandler:
     Resume Next
 
 End Function
+
+Public Function isIncludeTemplate(ByVal template$, _
+                                  Optional ByRef foundByTemplate, _
+                                  Optional ByRef foundCounter& = 0) As Boolean
+
+    Const this_me$ = "isIncludeTemplate"
+
+    On Error GoTo errHandler
+
+    isIncludeTemplate = False
+
+    foundByTemplate = FilterArr(template)
+    
+    If UBound(foundByTemplate) <> -1 Then
+    
+        isIncludeTemplate = True
+        
+        foundCounter = UBound(foundByTemplate) - LBound(foundByTemplate) + 1
+    
+    Else
+    
+        foundByTemplate = Empty
+    
+    End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
 
 Private Function defineAdder(ByVal Based) As Integer
 
