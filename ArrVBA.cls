@@ -10,19 +10,21 @@ Attribute VB_Exposed = False
 Option Explicit
 'Option Base 0    ' 0 it's default, but added explicitly
 
-#Const debug_me = True     ' Compiler directive  - if debug and timing needed
+#Const debug_me = False     ' Compiler directive  - if debug and timing needed
 
-Const className$ = "ArrVBA"    ' Used in error handling process messages
+Const className$ = "ArrVBA"    ' Used in error handling process messages for this module
 
 Public Enum SortMethod    ' sort methods allowed
+    [_First] = 1    ' [_First]/[_Last] - for easy for..next
     Insertion = 1
     Bubble = 2
     Selection = 3
     Quick = 4
     Heap = 5    ' default
+    [_Last] = 5
 End Enum
 
-' private class-level variables
+' private class-level variables:
 Private t_Count As Long     ' Counter of elements in ArrVBA instance
 Private theArr As Variant    ' Variant Array
 Private t_Based As Integer    ' Base of array, default 0
@@ -30,16 +32,18 @@ Private t_Based As Integer    ' Base of array, default 0
 
 Private Sub Class_Initialize()
 
-    Call Clear
+    Call Clear(keepBase:=False)
 
 End Sub
 
 
-Public Sub Clear()
+Public Sub Clear(Optional ByVal keepBase As Boolean = True)
 
     theArr = Empty
+
     t_Count = 0    'CVErr(xlErrNA)
-    t_Based = 0
+
+    If keepBase = False Then t_Based = 0
 
 End Sub
 
@@ -99,7 +103,7 @@ Private Function getMaxValue() As Variant
 
     needAnotherTry = False
 
-    getMaxValue = Application.WorksheetFunction.Max(theArr)
+    getMaxValue = Application.WorksheetFunction.max(theArr)
 
     If needAnotherTry = True Then
 
@@ -268,7 +272,7 @@ Private Function copyArr(ByVal Arr) As Variant
 
 End Function
 
-Function Add(ByVal elem) As Variant    ' base 0+
+Function Add(ByVal elem)
 
     Const this_me$ = "Add"
 
@@ -284,13 +288,17 @@ Function Add(ByVal elem) As Variant    ' base 0+
     If IsEmpty(theArr) Then
 
         ReDim theArr(t_Based To t_Based)
+
         theArr(t_Based) = elem
+
         t_Count = 1
 
     Else
 
         remax = UBound(theArr) + 1
+
         ReDim Preserve theArr(t_Based To remax)
+
         theArr(remax) = elem
 
         t_Count = t_Count + 1
@@ -298,6 +306,65 @@ Function Add(ByVal elem) As Variant    ' base 0+
     End If
 
     Add = theArr
+
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+Function AddArr(ByVal elems) As Variant    ' base 0+
+
+    Const this_me$ = "AddArr"
+
+    Dim remax&, minE&, maxE&, n&
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minE = LBound(elems)
+
+    maxE = UBound(elems)
+
+    If IsEmpty(theArr) Then
+
+        theArr = elems
+
+        ReDim Preserve theArr(t_Based To t_Based + (maxE - minE))
+
+        t_Count = maxE - minE + 1
+
+    Else
+
+        remax = UBound(theArr)
+
+        ReDim Preserve theArr(t_Based To remax + maxE + 1)
+
+        For n = minE To maxE
+
+            theArr(remax + n + 1) = elems(n)
+            t_Count = t_Count + 1
+
+        Next n
+
+    End If
+
+    AddArr = theArr
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -689,11 +756,11 @@ errHandler:
 
 End Sub
 
-Sub Reverse()
+Sub ReverseArr(Optional ByRef Arr)
 
-    Const this_me$ = "Reverse"
+    Const this_me$ = "ReverseArr"
 
-    Dim n&, m&, minN&, maxN&, B
+    Dim n&, m&, minN&, maxN&, B, maxM%, reverseClass
 
     On Error GoTo errHandler
 
@@ -702,21 +769,37 @@ Sub Reverse()
         starts = Timer
     #End If
 
-    minN = LBound(theArr)
+    reverseClass = False
 
-    maxN = UBound(theArr)
+    If IsMissing(Arr) Then
+        Arr = theArr
+        reverseClass = True
+    End If
 
+    minN = LBound(Arr)
+
+    maxN = UBound(Arr)
+
+    maxM = maxN
 
     ReDim B(minN To maxN)
 
 
     For n = minN To maxN
 
-        B(maxN - n) = theArr(n)
+        B(maxM) = Arr(n)
+
+        maxM = maxM - 1
 
     Next n
 
-    theArr = B
+    Arr = B
+
+    If reverseClass = True Then
+
+        theArr = Arr
+
+    End If
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -1200,7 +1283,7 @@ Private Function sortHeap(Arr, _
 
     Const this_me$ = "sortHeap"
 
-    Dim n&, m&, minN&, maxN&, i&, idxArr
+    Dim n&, m&, minN&, maxN&, i&, idxArr, needRebase As Boolean, oldBase%
 
     On Error GoTo errHandler
 
@@ -1209,63 +1292,56 @@ Private Function sortHeap(Arr, _
         starts = Timer
     #End If
 
+    needRebase = False
+
+    If t_Based <> 0 Then
+    
+        oldBase = t_Based
+
+        Call reBaseArr(t_Based, 0, Arr)
+        
+        needRebase = True
+        
+    End If
+
+
     minN = LBound(Arr)
 
     maxN = UBound(Arr)
 
     n = t_Count
 
-    ReDim idxArr(minN To maxN)    ' allocate array of indexes
 
-    If Reverse = False Then
+    For i = n To minN Step -1
 
-        ' fill array of Indexes
-        For i = minN To maxN
-            idxArr(i) = i
-        Next i
+        Call heapify(Arr, n, i)
 
-        For i = n \ 2 - t_Based To t_Based Step -1
-            Call Heapify(Arr, idxArr, i, n)    ' move highest up
-        Next i
-
-        For m = n To t_Based + 1 Step -1
-            Call swapPair(idxArr, t_Based, m - 1)
-            Call Heapify(Arr, idxArr, t_Based, m - 1)    ' move highest up
-        Next
-
-        For i = minN To maxN
-            idxArr(i) = Arr(idxArr(i))    ' refill array by new indexes
-        Next i
-
-        sortHeap = idxArr
-
-    Else
+    Next i
 
 
-        ' fill array of Indexes
-        For i = minN To maxN
-            idxArr(i) = i
-        Next i
+    For i = n - 1 To minN + 1 Step -1
 
-        For i = n \ 2 - 1 To 0 Step -1
-            Call Heapify(Arr, idxArr, i, n)    ' move highest up
-        Next i
+        Call swapPair(Arr, i, minN)
 
-        For m = n To 2 Step -1
-            Call swapPair(idxArr, 0, m - 1)
-            Call Heapify(Arr, idxArr, 0, m - 1)    ' move highest up
-        Next
+        Call heapify(Arr, i, minN)
 
-        ReDim idxArr2(minN To maxN)    ' allocate array of indexes
+    Next i
 
-        For i = minN To maxN
-            idxArr2(i) = Arr(idxArr(maxN - i + minN))    ' refill and reverse array by new indexes
-        Next i
+    If Reverse = True Then
 
-        sortHeap = idxArr2
+        Call ReverseArr(Arr)
 
     End If
+    
+    
+    If needRebase = True Then
+    
+        Call reBaseArr(0, oldBase, Arr)
+    
+    End If
+    
 
+    sortHeap = Arr
 
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
@@ -1283,43 +1359,39 @@ errHandler:
 
 End Function
 
-Private Sub Heapify(Arr, idxArr, ByVal i&, ByVal n&)
 
-    Const this_me$ = "Heapify"
+Private Function heapify(ByRef nums, ByVal heap_size&, ByVal root_index&):
 
-    Dim nDiv&, k&
+    Dim largest&, left_child&, right_child&
+    ' let index of max element - is root index
+    largest = root_index
+    left_child = (2 * root_index) + 1
+    right_child = (2 * root_index) + 2
 
-    On Error GoTo errHandler
-
-    nDiv = n \ 2
-
-    Do While i < nDiv
-
-        k = 2 * i + t_Based
-
-        If k + 1 < n Then
-            If Arr(idxArr(k)) < Arr(idxArr(k + 1)) Then k = k + 1
+    ' updating left if acceptable
+    If left_child < heap_size Then
+        If nums(left_child) > nums(largest) Then
+            largest = left_child
         End If
+    End If
 
-        If Arr(idxArr(i)) >= Arr(idxArr(k)) Then Exit Do
+    ' updating right if acceptable
+    If right_child < heap_size Then
+        If nums(right_child) > nums(largest) Then
+            largest = right_child
+        End If
+    End If
 
-        Call swapPair(idxArr, i, k)
+    ' If largest not root_index already - swap'em
+    If largest <> root_index Then
+        Call swapPair(nums, root_index, largest)
+        ' Heapify the new root element to ensure it's the largest
+        Call heapify(nums, heap_size, largest)
+    End If
 
-        i = k
+End Function
 
-    Loop
 
-    On Error GoTo 0
-
-    Exit Sub
-
-errHandler:
-
-    Call tinyHandler(this_me, Err)
-    Err.Clear
-    Resume Next
-
-End Sub
 
 Function isSorted(Optional ByRef isAscending As Boolean) As Boolean
 
@@ -1395,11 +1467,11 @@ Private Sub swapPair(idxArr, ByVal i&, ByVal j&)
 
 End Sub
 
-Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%)
+Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%, Optional ByRef Arr)
 
     Const this_me$ = "reBaseArr"
 
-    Dim n&, maxNew
+    Dim n&, maxNew&, rebaseClass As Boolean
 
     On Error GoTo errHandler
 
@@ -1408,14 +1480,33 @@ Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%)
         starts = Timer
     #End If
 
-    If IsEmpty(theArr) = True Then
+    rebaseClass = False
+
+    If IsMissing(Arr) Then
+        Arr = theArr
+        rebaseClass = True
+    End If
+
+
+    If IsEmpty(Arr) = True Then
+        
         'nothing to do here
+        
         GoTo finish
-        'maxNew = toBase - fromBase
-        'ReDim theArr(toBase To maxNew)
+        
     Else
-        maxNew = UBound(theArr) + (toBase - fromBase)
-        ReDim Preserve theArr(toBase To maxNew)
+
+        maxNew = UBound(Arr) + (toBase - fromBase)
+
+        ReDim Preserve Arr(toBase To maxNew)
+
+    End If
+
+
+    If rebaseClass = True Then
+
+        theArr = Arr
+
     End If
 
 finish:
@@ -1472,17 +1563,17 @@ Public Function isIncludeTemplate(ByVal template$, _
     isIncludeTemplate = False
 
     foundByTemplate = FilterArr(template)
-    
+
     If UBound(foundByTemplate) <> -1 Then
-    
+
         isIncludeTemplate = True
-        
+
         foundCounter = UBound(foundByTemplate) - LBound(foundByTemplate) + 1
-    
+
     Else
-    
+
         foundByTemplate = Empty
-    
+
     End If
 
     On Error GoTo 0
@@ -1520,7 +1611,7 @@ Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 
     Dim txt$
 
-    txt = "[" & className & "." & this_me & "]: " & ErrObj.Description & " (" & ErrObj.Number & ")"
+    txt = "![" & className & "." & this_me & "]: " & ErrObj.Description & " (" & ErrObj.Number & ")"
 
     Debug.Print txt
 
