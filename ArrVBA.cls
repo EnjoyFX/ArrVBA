@@ -67,9 +67,9 @@ Public Property Get Based() As Integer
 
 End Property
 
-Public Property Get Count() As Long
+Public Property Get count() As Long
 
-    Count = t_Count
+    count = t_Count
 
 End Property
 
@@ -544,7 +544,7 @@ Sub RndFill(ByVal elements&, _
 
     Const this_me$ = "RndFill"
 
-    Dim B, minB&, maxB&, n&, bounds&, shifter%
+    Dim B, minB&, maxB&, n&, bounds&, adder%, lastElem
 
     On Error GoTo errHandler
 
@@ -553,28 +553,73 @@ Sub RndFill(ByVal elements&, _
         starts = Timer
     #End If
 
-    If t_Based > elements Then
-
-        elements = t_Based
-
-        Debug.Print "Warning: number of elements less then base, used elements = "; elements
-
-    End If
-
-
-    ReDim theArr(t_Based To t_Based + elements - 1)
+    t_Count = elements
+    
+    adder = defineAdder(t_Based)
+    
+    lastElem = elements - adder
+    
+    ReDim theArr(t_Based To lastElem)
 
     ' Abstract: Int ((upperBound - lowerBound + 1) * Rnd + lowerBound)
 
     bounds = upperBound - lowerBound + 1
 
-    For n = t_Based To t_Based + elements - 1
+    For n = t_Based To lastElem
 
         theArr(n) = Int(bounds * Rnd + lowerBound)
 
     Next
 
+
+finish:
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me & " for " & t_Count, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Sub
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Sub
+
+
+Sub ValueFill(ByVal elements&, ByVal FillWith As Variant, _
+              Optional ByVal lowerBound& = 0, _
+              Optional ByVal upperBound& = 1)
+
+    Const this_me$ = "ValueFill"
+
+    Dim B, minB&, maxB&, n&, adder%, lastElem&
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
     t_Count = elements
+    
+    adder = defineAdder(t_Based)
+    
+    lastElem = elements - adder
+    
+    ReDim theArr(t_Based To lastElem)
+
+    For n = t_Based To lastElem
+
+        theArr(n) = FillWith
+
+    Next
+
 
 finish:
 
@@ -1295,13 +1340,13 @@ Private Function sortHeap(Arr, _
     needRebase = False
 
     If t_Based <> 0 Then
-    
+
         oldBase = t_Based
 
         Call reBaseArr(t_Based, 0, Arr)
-        
+
         needRebase = True
-        
+
     End If
 
 
@@ -1332,14 +1377,14 @@ Private Function sortHeap(Arr, _
         Call ReverseArr(Arr)
 
     End If
-    
-    
+
+
     If needRebase = True Then
-    
+
         Call reBaseArr(0, oldBase, Arr)
-    
+
     End If
-    
+
 
     sortHeap = Arr
 
@@ -1489,11 +1534,11 @@ Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%, Optional ByRef Arr)
 
 
     If IsEmpty(Arr) = True Then
-        
+
         'nothing to do here
-        
+
         GoTo finish
-        
+
     Else
 
         maxNew = UBound(Arr) + (toBase - fromBase)
