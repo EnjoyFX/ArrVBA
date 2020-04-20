@@ -39,7 +39,7 @@ Sub testsBased(ByVal theBase%)
 
     Debug.Assert A.Based = theBase
 
-    Debug.Assert A.Count = 0
+    Debug.Assert A.count = 0
 
     Debug.Assert A.AsString = vbNullString
 
@@ -61,7 +61,7 @@ Sub testsBased(ByVal theBase%)
 
     Debug.Assert A.Arr(theBase + 3) = 777
 
-    Debug.Assert A.Count = 4
+    Debug.Assert A.count = 4
 
     Debug.Assert A.MaxValue = 2020
 
@@ -126,7 +126,34 @@ Sub testsBased(ByVal theBase%)
         Next m
 
     Next n
+    
+    
+    Dim lowerBand&, upperBand&, count&
+    
+    lowerBand = 1: upperBand = 10: count = 3
+    
+    A.RndFill 3, lowerBound:=1, upperBound:=10
+    
+    Debug.Assert A.count = count
+    
+    Debug.Assert A.Arr(A.Based) >= lowerBand
+    
+    Debug.Assert A.Arr(A.Based) <= upperBand
+    
+    
+    
+    A.Clear
+    
+    A.ValueFill 10, "!"
+    
+    Debug.Assert A.AsString = "!,!,!,!,!,!,!,!,!,!"
+    
+    A.ValueFill 3, 999
 
+    Debug.Assert A.AsString = "999,999,999"
+    
+    
+    
 
 End Sub
 
