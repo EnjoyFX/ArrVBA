@@ -8,7 +8,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'Option Base 0    ' 0 it's default, but added explicitly
 
 #Const debug_me = False     ' Compiler directive  - if debug and timing needed
 
@@ -24,18 +23,12 @@ Public Enum SortMethod    ' sort methods allowed
     [_Last] = 5
 End Enum
 
-' private class-level variables:
+' Private Class-Level Variables:
 Private t_Count As Long     ' Counter of elements in ArrVBA instance
 Private theArr As Variant    ' Variant Array
 Private t_Based As Integer    ' Base of array, default 0
 
-
-Private Sub Class_Initialize()
-
-    Call Clear(keepBase:=False)
-
-End Sub
-
+' --- Public Area: ---
 
 Public Sub Clear(Optional ByVal keepBase As Boolean = True)
 
@@ -46,7 +39,6 @@ Public Sub Clear(Optional ByVal keepBase As Boolean = True)
     If keepBase = False Then t_Based = 0
 
 End Sub
-
 
 Public Property Let Based(ByVal value%)
 
@@ -60,16 +52,15 @@ Public Property Let Based(ByVal value%)
 
 End Property
 
-
 Public Property Get Based() As Integer
 
     Based = t_Based
 
 End Property
 
-Public Property Get count() As Long
+Public Property Get Count() As Long
 
-    count = t_Count
+    Count = t_Count
 
 End Property
 
@@ -91,125 +82,8 @@ Public Property Get MinValue() As Variant
 
 End Property
 
-Private Function getMaxValue() As Variant
-
-    Dim n&, needAnotherTry As Boolean, theMax, test
-
-    On Error GoTo errHandler
-
-    getMaxValue = Empty
-
-    If IsEmpty(theArr) Then GoTo finish
-
-    needAnotherTry = False
-
-    getMaxValue = Application.WorksheetFunction.max(theArr)
-
-    If needAnotherTry = True Then
-
-        theMax = -9E+99
-
-        For n = LBound(theArr) To UBound(theArr)
-
-            test = theArr(n)
-
-            If isOKNumeric(test) Then
-
-                If theMax < test Then theMax = test
-
-            End If
-
-        Next n
-
-        getMaxValue = theMax
-
-    End If
-
-finish:
-
-    On Error GoTo 0
-
-    Exit Function
-
-errHandler:
-
-    #If debug_me = True Then
-        If Err.Number <> 1004 Then Call tinyHandler("_getMaxValue", Err)
-    #End If
-    needAnotherTry = True
-    Err.Clear
-    Resume Next
-
-End Function
-
-
-Private Function getMinValue() As Variant
-
-    Dim n&, needAnotherTry As Boolean, theMin, test
-
-    On Error GoTo errHandler
-
-    getMinValue = Empty
-
-    If IsEmpty(theArr) Then GoTo finish
-
-    needAnotherTry = False
-
-    getMinValue = Application.WorksheetFunction.Min(theArr)
-
-    If needAnotherTry = True Then
-
-        theMin = 9E+99
-
-        For n = LBound(theArr) To UBound(theArr)
-
-            test = theArr(n)
-
-            If isOKNumeric(test) Then
-
-                If theMin > test Then theMin = test
-
-            End If
-
-        Next n
-
-        getMinValue = theMin
-
-    End If
-
-finish:
-
-    On Error GoTo 0
-
-    Exit Function
-
-errHandler:
-
-    #If debug_me = True Then
-        If Err.Number <> 1004 Then Call tinyHandler("_getMinValue", Err)
-    #End If
-    needAnotherTry = True
-    Err.Clear
-    Resume Next
-
-End Function
-
-
-
-Private Function isOKNumeric(ByVal value As Variant) As Boolean
-
-' internal tester for non-error and  numeric value
-
-    If IsError(value) = False Then
-
-        isOKNumeric = IsNumeric(value)
-
-    End If
-
-End Function
-
-Public Sub PrintMe(Optional ByVal delim = ", ", _
-                   Optional ByRef toVar$ = "")
+Public Sub PrintMe(Optional ByVal delim As String = ", ", _
+                          Optional ByRef toVar As String = "")
 
 ' Prints array to immendiate window [and to variable toVar]
 ' [delim] - delimiter for elements of array
@@ -265,14 +139,7 @@ errHandler:
 
 End Sub
 
-
-Private Function copyArr(ByVal Arr) As Variant
-
-    copyArr = Arr
-
-End Function
-
-Function Add(ByVal elem)
+Public Function Add(ByVal elem As Variant)
 
     Const this_me$ = "Add"
 
@@ -307,7 +174,6 @@ Function Add(ByVal elem)
 
     Add = theArr
 
-
     #If debug_me = True Then
         Call tinyTiming(this_me, Timer - starts)
     #End If
@@ -324,7 +190,7 @@ errHandler:
 
 End Function
 
-Function AddArr(ByVal elems) As Variant    ' base 0+
+Public Function AddArr(ByVal elems) As Variant
 
     Const this_me$ = "AddArr"
 
@@ -382,14 +248,13 @@ errHandler:
 
 End Function
 
-
-Function AsVariant() As Variant
+Public Function AsVariant() As Variant
 
     AsVariant = theArr
 
 End Function
 
-Function AsString(Optional ByVal delim = ",") As String
+Public Function AsString(Optional ByVal delim As String = ",") As String
 
     Const this_me$ = "AsString"
 
@@ -413,7 +278,7 @@ errHandler:
 
 End Function
 
-Function AsStringArr() As String()
+Public Function AsStringArr() As String()
 
     Const this_me$ = "AsStringArr"
 
@@ -445,8 +310,7 @@ errHandler:
 
 End Function
 
-
-Function AsVertical() As Variant
+Public Function AsVertical() As Variant
 
     Const this_me$ = "AsVertical"
 
@@ -463,7 +327,7 @@ Function AsVertical() As Variant
 
     maxB = UBound(theArr)
 
-    adder = defineAdder(Based)
+    adder = defineAdder(t_Based)
 
     ReDim B(1 To t_Count, 1 To 1)
 
@@ -491,8 +355,7 @@ errHandler:
 
 End Function
 
-
-Function AsHorizontal() As Variant
+Public Function AsHorizontal() As Variant
 
     Const this_me$ = "AsHorizontal"
 
@@ -509,7 +372,7 @@ Function AsHorizontal() As Variant
 
     maxB = UBound(theArr)
 
-    adder = defineAdder(Based)
+    adder = defineAdder(t_Based)
 
     ReDim B(1 To 1, 1 To t_Count)
 
@@ -538,9 +401,9 @@ errHandler:
 End Function
 
 
-Sub RndFill(ByVal elements&, _
-            Optional ByVal lowerBound& = 0, _
-            Optional ByVal upperBound& = 1)
+Public Sub RndFill(ByVal elements&, _
+                          Optional ByVal lowerBound& = 0, _
+                          Optional ByVal upperBound& = 1)
 
     Const this_me$ = "RndFill"
 
@@ -554,11 +417,11 @@ Sub RndFill(ByVal elements&, _
     #End If
 
     t_Count = elements
-    
+
     adder = defineAdder(t_Based)
-    
+
     lastElem = elements - adder
-    
+
     ReDim theArr(t_Based To lastElem)
 
     ' Abstract: Int ((upperBound - lowerBound + 1) * Rnd + lowerBound)
@@ -570,7 +433,6 @@ Sub RndFill(ByVal elements&, _
         theArr(n) = Int(bounds * Rnd + lowerBound)
 
     Next
-
 
 finish:
 
@@ -591,9 +453,9 @@ errHandler:
 End Sub
 
 
-Sub ValueFill(ByVal elements&, ByVal FillWith As Variant, _
-              Optional ByVal lowerBound& = 0, _
-              Optional ByVal upperBound& = 1)
+Public Sub ValueFill(ByVal elements&, ByVal FillWith As Variant, _
+                            Optional ByVal lowerBound& = 0, _
+                            Optional ByVal upperBound& = 1)
 
     Const this_me$ = "ValueFill"
 
@@ -607,11 +469,11 @@ Sub ValueFill(ByVal elements&, ByVal FillWith As Variant, _
     #End If
 
     t_Count = elements
-    
+
     adder = defineAdder(t_Based)
-    
+
     lastElem = elements - adder
-    
+
     ReDim theArr(t_Based To lastElem)
 
     For n = t_Based To lastElem
@@ -640,10 +502,10 @@ errHandler:
 End Sub
 
 
-Sub OutVertical(ByVal startAddr$, _
-                Optional ws As Worksheet, _
-                Optional ByRef rngOut As Range, _
-                Optional ByVal bold As Boolean = False)
+Public Sub OutVertical(ByVal startAddr$, _
+                              Optional ws As Worksheet, _
+                              Optional ByRef rngOut As Range, _
+                              Optional ByVal bold As Boolean = False)
 
     Const this_me$ = "OutVertical"
 
@@ -660,7 +522,7 @@ Sub OutVertical(ByVal startAddr$, _
 
     maxB = UBound(theArr)
 
-    adder = defineAdder(Based)
+    adder = defineAdder(t_Based)
 
     ReDim B(1 To t_Count, 1 To 1)
 
@@ -693,10 +555,10 @@ errHandler:
 
 End Sub
 
-Sub OutHorizontal(ByVal startAddr$, _
-                  Optional ws As Worksheet, _
-                  Optional ByRef rngOut As Range, _
-                  Optional ByVal bold As Boolean = False)
+Public Sub OutHorizontal(ByVal startAddr$, _
+                                Optional ws As Worksheet, _
+                                Optional ByRef rngOut As Range, _
+                                Optional ByVal bold As Boolean = False)
 
     Const this_me$ = "OutHorizontal"
 
@@ -713,7 +575,7 @@ Sub OutHorizontal(ByVal startAddr$, _
 
     maxB = UBound(theArr)
 
-    adder = defineAdder(Based)
+    adder = defineAdder(t_Based)
 
     ReDim B(1 To 1, 1 To t_Count)
 
@@ -747,10 +609,10 @@ errHandler:
 End Sub
 
 
-Sub OutDiagonal(ByVal startAddr$, _
-                Optional ws As Worksheet, _
-                Optional ByRef rngOut As Range, _
-                Optional ByVal bold As Boolean = False)
+Public Sub OutDiagonal(ByVal startAddr$, _
+                              Optional ws As Worksheet, _
+                              Optional ByRef rngOut As Range, _
+                              Optional ByVal bold As Boolean = False)
 
     Const this_me$ = "OutDiagonal"
 
@@ -767,7 +629,7 @@ Sub OutDiagonal(ByVal startAddr$, _
 
     maxB = UBound(theArr)
 
-    adder = defineAdder(Based)
+    adder = defineAdder(t_Based)
 
     ReDim B(1 To t_Count, 1 To t_Count)
 
@@ -801,7 +663,7 @@ errHandler:
 
 End Sub
 
-Sub ReverseArr(Optional ByRef Arr)
+Public Sub ReverseArr(Optional ByRef Arr)
 
     Const this_me$ = "ReverseArr"
 
@@ -864,8 +726,8 @@ End Sub
 
 
 
-Sub Sort(Optional ByVal Method% = SortMethod.Heap, _
-         Optional ByVal Reverse = False)
+Public Sub Sort(Optional ByVal Method = SortMethod.Heap, _
+                       Optional ByVal Reverse As Boolean = False)
 
     Select Case Method
 
@@ -886,13 +748,263 @@ Sub Sort(Optional ByVal Method% = SortMethod.Heap, _
 End Sub
 
 
+Public Function isSorted(Optional ByRef isAscending As Boolean) As Boolean
+
+    Const this_me$ = "isSorted"
+
+    Dim n&, minN&, maxN&
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    minN = LBound(theArr)
+
+    maxN = UBound(theArr)
+
+    If theArr(minN) < theArr(maxN) Then isAscending = True Else isAscending = False
+
+    isSorted = True    ' optimistic start
+
+    If isAscending = True Then
+
+        For n = minN To maxN - 1
+
+            If theArr(n) > theArr(n + 1) Then
+                isSorted = False
+                Exit For
+            End If
+
+        Next n
+
+    Else
+
+        For n = maxN To minN + 1 Step -1
+
+            If theArr(n) > theArr(n - 1) Then
+                isSorted = False
+                Exit For
+            End If
+
+        Next n
+
+    End If
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+
+Public Function FilterArr(ByVal searchFor As String, _
+                                 Optional ByVal Include As Boolean = True, _
+                                 Optional ByVal Compare As Integer = 1) As Variant
+
+' Filtering value to string array
+
+    Const this_me$ = "FilterArr"
+
+    On Error GoTo errHandler
+
+    FilterArr = Filter(theArr, searchFor, Include:=Include, Compare:=Compare)
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+Public Function isIncludeTemplate(ByVal template As String, _
+                                         Optional ByRef foundByTemplate, _
+                                         Optional ByRef foundCounter As Long = 0) As Boolean
+
+    Const this_me$ = "isIncludeTemplate"
+
+    On Error GoTo errHandler
+
+    isIncludeTemplate = False
+
+    foundByTemplate = FilterArr(template)
+
+    If UBound(foundByTemplate) <> -1 Then
+
+        isIncludeTemplate = True
+
+        foundCounter = UBound(foundByTemplate) - LBound(foundByTemplate) + 1
+
+    Else
+
+        foundByTemplate = Empty
+
+    End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
+
+' --- Private Area: ---
+
+Private Sub Class_Initialize()
+
+    Call Clear(keepBase:=False)
+
+End Sub
+
+Private Function copyArr(ByVal Arr) As Variant
+
+    copyArr = Arr
+
+End Function
+
+Private Function getMaxValue() As Variant
+
+    Dim n&, needAnotherTry As Boolean, theMax, test
+
+    On Error GoTo errHandler
+
+    getMaxValue = Empty
+
+    If IsEmpty(theArr) Then GoTo finish
+
+    needAnotherTry = False
+
+    getMaxValue = Application.WorksheetFunction.max(theArr)
+
+    If needAnotherTry = True Then
+
+        theMax = -9E+99
+
+        For n = LBound(theArr) To UBound(theArr)
+
+            test = theArr(n)
+
+            If isOKNumeric(test) Then
+
+                If theMax < test Then theMax = test
+
+            End If
+
+        Next n
+
+        getMaxValue = theMax
+
+    End If
+
+finish:
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    #If debug_me = True Then
+        If Err.Number <> 1004 Then Call tinyHandler("_getMaxValue", Err)
+    #End If
+    needAnotherTry = True
+    Err.Clear
+    Resume Next
+
+End Function
+
+
+Private Function getMinValue() As Variant
+
+    Dim n&, needAnotherTry As Boolean, theMin As Variant, test As Variant
+
+    On Error GoTo errHandler
+
+    getMinValue = Empty
+
+    If IsEmpty(theArr) Then GoTo finish
+
+    needAnotherTry = False
+
+    getMinValue = Application.WorksheetFunction.Min(theArr)
+
+    If needAnotherTry = True Then
+
+        theMin = 9E+99
+
+        For n = LBound(theArr) To UBound(theArr)
+
+            test = theArr(n)
+
+            If isOKNumeric(test) Then
+
+                If theMin > test Then theMin = test
+
+            End If
+
+        Next n
+
+        getMinValue = theMin
+
+    End If
+
+finish:
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    #If debug_me = True Then
+        If Err.Number <> 1004 Then Call tinyHandler("_getMinValue", Err)
+    #End If
+    needAnotherTry = True
+    Err.Clear
+    Resume Next
+
+End Function
+
+Private Function isOKNumeric(ByVal value As Variant) As Boolean
+
+' internal tester for non-error and  numeric value
+
+    If IsError(value) = False Then
+
+        isOKNumeric = IsNumeric(value)
+
+    End If
+
+End Function
 
 Private Function sortInsertion(Arr, _
-                               Optional ByVal Reverse = False) As Variant
+                               Optional ByVal Reverse As Boolean = False) As Variant
 
     Const this_me$ = "sortInsertion"
 
-    Dim n&, m&, minN&, maxN&, item_to_insert
+    Dim n&, m&, minN&, maxN&, item_to_insert As Variant
 
     On Error GoTo errHandler
 
@@ -999,11 +1111,11 @@ End Function
 
 
 Private Function sortBubble(Arr, _
-                            Optional ByVal Reverse = False) As Variant
+                            Optional ByVal Reverse As Boolean = False) As Variant
 
     Const this_me$ = "sortBubble"
 
-    Dim n&, m&, minN&, maxN&, swapped As Boolean, tmp
+    Dim n&, m&, minN&, maxN&, swapped As Boolean, tmp As Variant
 
     On Error GoTo errHandler
 
@@ -1106,7 +1218,7 @@ End Function
 
 
 Private Function sortSelection(Arr, _
-                               Optional ByVal Reverse = False) As Variant
+                               Optional ByVal Reverse As Boolean = False) As Variant
 
     Const this_me$ = "sortSelection"
 
@@ -1207,9 +1319,9 @@ End Function
 
 
 Private Function sortQuick(Arr, _
-                           Optional ByVal Reverse = False, _
-                           Optional ByVal minN& = -1, _
-                           Optional ByVal maxN& = -1) As Variant
+                           Optional ByVal Reverse As Boolean = False, _
+                           Optional ByVal minN As Long = -1, _
+                           Optional ByVal maxN As Long = -1) As Variant
 
     Const this_me$ = "sortQuick"
 
@@ -1324,11 +1436,11 @@ End Function
 
 
 Private Function sortHeap(Arr, _
-                          Optional ByVal Reverse = False) As Variant
+                          Optional ByVal Reverse As Boolean = False) As Variant
 
     Const this_me$ = "sortHeap"
 
-    Dim n&, m&, minN&, maxN&, i&, idxArr, needRebase As Boolean, oldBase%
+    Dim n&, m&, minN&, maxN&, i&, idxArr, needRebase As Boolean, oldBase As Integer
 
     On Error GoTo errHandler
 
@@ -1405,7 +1517,7 @@ errHandler:
 End Function
 
 
-Private Function heapify(ByRef nums, ByVal heap_size&, ByVal root_index&):
+Private Function heapify(ByRef nums, ByVal heap_size As Long, ByVal root_index As Long):
 
     Dim largest&, left_child&, right_child&
     ' let index of max element - is root index
@@ -1438,69 +1550,7 @@ End Function
 
 
 
-Function isSorted(Optional ByRef isAscending As Boolean) As Boolean
-
-    Const this_me$ = "isSorted"
-
-    Dim n&, minN&, maxN&
-
-    On Error GoTo errHandler
-
-    #If debug_me = True Then
-        Dim starts
-        starts = Timer
-    #End If
-
-    minN = LBound(theArr)
-
-    maxN = UBound(theArr)
-
-    If theArr(minN) < theArr(maxN) Then isAscending = True Else isAscending = False
-
-    isSorted = True    ' optimistic start
-
-    If isAscending = True Then
-
-        For n = minN To maxN - 1
-
-            If theArr(n) > theArr(n + 1) Then
-                isSorted = False
-                Exit For
-            End If
-
-        Next n
-
-    Else
-
-        For n = maxN To minN + 1 Step -1
-
-            If theArr(n) > theArr(n - 1) Then
-                isSorted = False
-                Exit For
-            End If
-
-        Next n
-
-    End If
-
-    #If debug_me = True Then
-        Call tinyTiming(this_me, Timer - starts)
-    #End If
-
-    On Error GoTo 0
-
-    Exit Function
-
-errHandler:
-
-    Call tinyHandler(this_me, Err)
-    Err.Clear
-    Resume Next
-
-End Function
-
-
-Private Sub swapPair(idxArr, ByVal i&, ByVal j&)
+Private Sub swapPair(idxArr, ByVal i As Long, ByVal j As Long)
 
     Dim tmp&
 
@@ -1512,7 +1562,7 @@ Private Sub swapPair(idxArr, ByVal i&, ByVal j&)
 
 End Sub
 
-Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%, Optional ByRef Arr)
+Private Sub reBaseArr(ByVal fromBase As Integer, ByVal toBase As Integer, Optional ByRef Arr)
 
     Const this_me$ = "reBaseArr"
 
@@ -1536,7 +1586,6 @@ Private Sub reBaseArr(ByVal fromBase%, ByVal toBase%, Optional ByRef Arr)
     If IsEmpty(Arr) = True Then
 
         'nothing to do here
-
         GoTo finish
 
     Else
@@ -1572,71 +1621,9 @@ errHandler:
 
 End Sub
 
+Private Function defineAdder(ByVal Based As Integer) As Integer
 
-Public Function FilterArr(ByVal searchFor$, _
-                          Optional ByVal Include As Boolean = True, _
-                          Optional ByVal Compare% = 1) As Variant
-
-' Filtering value to string array
-
-    Const this_me$ = "FilterArr"
-
-    On Error GoTo errHandler
-
-    FilterArr = Filter(theArr, searchFor, Include:=Include, Compare:=Compare)
-
-    On Error GoTo 0
-
-    Exit Function
-
-errHandler:
-
-    Call tinyHandler(this_me, Err)
-    Err.Clear
-    Resume Next
-
-End Function
-
-Public Function isIncludeTemplate(ByVal template$, _
-                                  Optional ByRef foundByTemplate, _
-                                  Optional ByRef foundCounter& = 0) As Boolean
-
-    Const this_me$ = "isIncludeTemplate"
-
-    On Error GoTo errHandler
-
-    isIncludeTemplate = False
-
-    foundByTemplate = FilterArr(template)
-
-    If UBound(foundByTemplate) <> -1 Then
-
-        isIncludeTemplate = True
-
-        foundCounter = UBound(foundByTemplate) - LBound(foundByTemplate) + 1
-
-    Else
-
-        foundByTemplate = Empty
-
-    End If
-
-    On Error GoTo 0
-
-    Exit Function
-
-errHandler:
-
-    Call tinyHandler(this_me, Err)
-    Err.Clear
-    Resume Next
-
-End Function
-
-
-Private Function defineAdder(ByVal Based) As Integer
-
-    Dim adder%
+    Dim adder As Integer
 
     If Based = 0 Then
         adder = 1
@@ -1652,7 +1639,7 @@ Private Function defineAdder(ByVal Based) As Integer
 
 End Function
 
-Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
+Private Sub tinyHandler(ByVal this_me As String, ByRef ErrObj)
 
     Dim txt$
 
@@ -1663,7 +1650,7 @@ Private Sub tinyHandler(ByVal this_me$, ByRef ErrObj)
 End Sub
 
 
-Private Sub tinyTiming(ByVal this_me$, ByVal delta)
+Private Sub tinyTiming(ByVal this_me As String, ByVal delta As Variant)
 
     Debug.Print "[" & className & "." & this_me & " timing] = " & Round(delta, 4); " s"
 

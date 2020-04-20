@@ -15,12 +15,12 @@ Sub runTests()
     Call testsBased(0)
 
 
-' test for Based 1
+    ' test for Based 1
 
     Call testsBased(1)
 
 
-' test for Based 10
+    ' test for Based 10
 
     Call testsBased(10)
 
@@ -39,7 +39,7 @@ Sub testsBased(ByVal theBase%)
 
     Debug.Assert A.Based = theBase
 
-    Debug.Assert A.count = 0
+    Debug.Assert A.Count = 0
 
     Debug.Assert A.AsString = vbNullString
 
@@ -61,7 +61,7 @@ Sub testsBased(ByVal theBase%)
 
     Debug.Assert A.Arr(theBase + 3) = 777
 
-    Debug.Assert A.count = 4
+    Debug.Assert A.Count = 4
 
     Debug.Assert A.MaxValue = 2020
 
@@ -87,7 +87,7 @@ Sub testsBased(ByVal theBase%)
 
     Debug.Assert A.isIncludeTemplate("ti") = False
 
-    
+
     ' sort method tests
 
     Dim n%, m%, Reverse As Boolean, testElems, testSort$, testSortRe$
@@ -110,11 +110,11 @@ Sub testsBased(ByVal theBase%)
             Reverse = CBool(m)
 
             A.Sort Method:=n, Reverse:=Reverse
-            
+
             Debug.Print "SortMethod = "; n; " Reverse = "; Reverse; " Base = "; theBase
-            
+
             If Reverse = False Then
-                
+
                 Debug.Assert A.AsString = testSort
 
             Else
@@ -126,34 +126,34 @@ Sub testsBased(ByVal theBase%)
         Next m
 
     Next n
-    
-    
-    Dim lowerBand&, upperBand&, count&
-    
-    lowerBand = 1: upperBand = 10: count = 3
-    
+
+
+    Dim lowerBand&, upperBand&, Count&
+
+    lowerBand = 1: upperBand = 10: Count = 3
+
     A.RndFill 3, lowerBound:=1, upperBound:=10
-    
-    Debug.Assert A.count = count
-    
+
+    Debug.Assert A.Count = Count
+
     Debug.Assert A.Arr(A.Based) >= lowerBand
-    
+
     Debug.Assert A.Arr(A.Based) <= upperBand
-    
-    
-    
+
+
+
     A.Clear
-    
+
     A.ValueFill 10, "!"
-    
+
     Debug.Assert A.AsString = "!,!,!,!,!,!,!,!,!,!"
-    
+
     A.ValueFill 3, 999
 
     Debug.Assert A.AsString = "999,999,999"
-    
-    
-    
+
+
+
 
 End Sub
 
