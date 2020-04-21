@@ -10,19 +10,17 @@ Dim A As New ArrVBA, toVar$, B As Variant
 
 Sub runTests()
 
-' test for Based 0
-
+    ' test for Based 0
     Call testsBased(0)
 
-
     ' test for Based 1
-
     Call testsBased(1)
 
-
     ' test for Based 10
-
     Call testsBased(10)
+        
+    ' test for Based 100
+    Call testsBased(100)
 
 
     Call MsgBox("Tests are passed")
@@ -132,7 +130,7 @@ Sub testsBased(ByVal theBase%)
 
     lowerBand = 1: upperBand = 10: Count = 3
 
-    A.RndFill 3, lowerBound:=1, upperBound:=10
+    A.RndFill Count, lowerBound:=lowerBand, upperBound:=upperBand
 
     Debug.Assert A.Count = Count
 
