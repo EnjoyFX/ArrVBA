@@ -808,6 +808,34 @@ errHandler:
 
 End Function
 
+Public Function isArrEmpty() As Boolean
+
+    Const this_me$ = "isArrEmpty"
+
+    On Error GoTo errHandler
+
+    #If debug_me = True Then
+        Dim starts
+        starts = Timer
+    #End If
+
+    If IsEmpty(theArr) Then isArrEmpty = True Else isArrEmpty = False
+
+    #If debug_me = True Then
+        Call tinyTiming(this_me, Timer - starts)
+    #End If
+
+    On Error GoTo 0
+
+    Exit Function
+
+errHandler:
+
+    Call tinyHandler(this_me, Err)
+    Err.Clear
+    Resume Next
+
+End Function
 
 Public Function FilterArr(ByVal searchFor As String, _
                           Optional ByVal Include As Boolean = True, _
